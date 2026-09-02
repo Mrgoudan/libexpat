@@ -1504,7 +1504,7 @@ parserCreate(const XML_Char *encodingName,
 static void
 parserInit(XML_Parser parser, const XML_Char *encodingName) {
   parser->m_processor = prologInitProcessor;
-  XmlPrologStateInit(&parser->m_prologState);
+  XmlPrologStateInit(&_Mut parser->m_prologState);
   if (encodingName != NULL) {
     parser->m_protocolEncodingName = copyString(encodingName, parser);
   }
@@ -1862,7 +1862,7 @@ XML_ExternalEntityParserCreate(XML_Parser oldParser, const XML_Char *context,
        PE parser. This would leave those prefixes with dangling pointers.
     */
     parser->m_isParamEntity = XML_TRUE;
-    XmlPrologStateInitExternalEntity(&parser->m_prologState);
+    XmlPrologStateInitExternalEntity(&_Mut parser->m_prologState);
     parser->m_processor = externalParEntInitProcessor;
   }
 #endif /* XML_DTD */
@@ -5327,7 +5327,7 @@ doProlog(XML_Parser parser, const ENCODING *enc, const char *s, const char *end,
            internal PEs if the reference occurs between declarations.
         */
         if (parser->m_isParamEntity || enc != parser->m_encoding) {
-          if (XmlTokenRole(&parser->m_prologState, XML_TOK_NONE, end, end, enc)
+          if (XmlTokenRole(&_Mut parser->m_prologState, XML_TOK_NONE, end, end, enc)
               == XML_ROLE_ERROR)
             return XML_ERROR_INCOMPLETE_PE;
           *nextPtr = s;
@@ -5341,7 +5341,7 @@ doProlog(XML_Parser parser, const ENCODING *enc, const char *s, const char *end,
         break;
       }
     }
-    role = XmlTokenRole(&parser->m_prologState, tok, s, next, enc);
+    role = XmlTokenRole(&_Mut parser->m_prologState, tok, s, next, enc);
 #if XML_GE == 1
     switch (role) {
     case XML_ROLE_INSTANCE_START: // bytes accounted in contentProcessor

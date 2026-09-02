@@ -112,8 +112,9 @@ enum {
 };
 
 typedef struct prolog_state {
-  int(PTRCALL *handler)(struct prolog_state *state, int tok, const char *ptr,
-                        const char *end, const ENCODING *enc);
+  _Safe int(PTRCALL *handler)(struct prolog_state *_Borrow state, int tok,
+                              const char *ptr, const char *end,
+                              const ENCODING *enc);
   unsigned level;
   int role_none;
 #  ifdef XML_DTD
@@ -123,13 +124,19 @@ typedef struct prolog_state {
 #  endif /* XML_DTD */
 } PROLOG_STATE;
 
-void XmlPrologStateInit(PROLOG_STATE *state);
+_Safe void XmlPrologStateInit(PROLOG_STATE *_Borrow state);
 #  ifdef XML_DTD
-void XmlPrologStateInitExternalEntity(PROLOG_STATE *state);
+_Safe void XmlPrologStateInitExternalEntity(PROLOG_STATE *_Borrow state);
 #  endif /* XML_DTD */
 
-#  define XmlTokenRole(state, tok, ptr, end, enc)                              \
-    (((state)->handler)(state, tok, ptr, end, enc))
+_Safe static inline int
+XmlTokenRole(PROLOG_STATE *_Borrow state, int tok, const char *ptr,
+             const char *end, const ENCODING *enc) {
+  _Safe int(PTRCALL *handler)(struct prolog_state *_Borrow, int, const char *,
+                              const char *, const ENCODING *)
+      = state->handler;
+  return handler(state, tok, ptr, end, enc);
+}
 
 #  ifdef __cplusplus
 }
