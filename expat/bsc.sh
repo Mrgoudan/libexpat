@@ -2,7 +2,7 @@
 # Build/verify helper for the BiSheng C port. Usage: bsc.sh {configure|build|test|check <file>|strict|asan|all}
 set -euo pipefail
 
-REPO=/home/ziruichen/bsd/libexpat
+REPO=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
 SRC=$REPO/expat
 BSC_CLANG=${BSC_CLANG:-/home/ziruichen/bsd/llvm-project-dup/build/bin/clang}
 LIBCBS=${LIBCBS:-/home/ziruichen/bsd/llvm-project-dup/libcbs/src}
