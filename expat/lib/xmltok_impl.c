@@ -232,7 +232,7 @@ PREFIX(scanDecl)(const ENCODING *enc, const char *ptr, const char *end,
 
 static _Safe int PTRCALL
 PREFIX(checkPiTarget)(const ENCODING *enc, const char *ptr, const char *end,
-                      int *_Borrow tokPtr) {
+                      int *_Borrow __attribute__((ensure_init)) tokPtr) {
   int upper = 0;
   UNUSED_P(enc);
   *tokPtr = XML_TOK_PI;
