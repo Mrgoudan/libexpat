@@ -1,0 +1,12 @@
+#include "bishengc_safety.hbs"
+_Safe int *_Owned mk(void) { return safe_malloc<int>(7); }
+_Safe void consume(int *_Owned p) { safe_free((void *_Owned)p); }
+_Safe int use(const int *_Borrow b) { return *b; }
+_Safe int right(void) {
+  int *_Owned p = mk();
+  const int *_Borrow b = &_Const *p;
+  int c = use(b);                      // use key while owner still alive
+  consume(p);                          // then free
+  return c;
+}
+int main(void) { return right(); }

@@ -1,0 +1,13 @@
+#include "bishengc_safety.hbs"
+// Essence of candidate 16 / the classic expat use-after-free class:
+// a _Borrow into an owner is used after the owner is freed.
+_Safe int *_Owned mk(void) { return safe_malloc<int>(7); }
+_Safe void consume(int *_Owned p) { safe_free((void *_Owned)p); }
+_Safe int use(const int *_Borrow b) { return *b; }
+_Safe int wrong(void) {
+  int *_Owned p = mk();
+  const int *_Borrow b = &_Const *p;   // key borrowed from the owner (dtd pool)
+  consume(p);                          // owner freed (XML_ParserReset/Free of parent)
+  return use(b);                       // stale key used -> must be rejected
+}
+int main(void) { return wrong(); }

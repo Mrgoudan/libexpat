@@ -1,0 +1,18 @@
+#include "bishengc_safety.hbs"
+// Faithful shape of candidate 16: a DTD "pool" owns key storage; a hash-table key
+// borrows into that pool. dtdCopy stores an OLD-pool key into the NEW dtd's table.
+typedef struct { char *_Owned data; } Pool;         // pool owns its key bytes
+_Safe Pool *_Owned pool_new(char k) { Pool p = { .data = safe_malloc<char>(k) }; return safe_malloc<Pool>(p); }
+_Safe const char *_Borrow pool_key(const Pool *_Borrow p) { return &_Const *p->data; }
+_Safe void pool_free(Pool *_Owned p) { safe_free((void *_Owned)p->data); safe_free((void *_Owned)p); }
+_Safe char key_first(const char *_Borrow k) { return *k; }
+_Safe char dtdCopy_wrong(void) {
+  Pool *_Owned oldDtd = pool_new('a');
+  Pool *_Owned newDtd = pool_new('b');
+  const char *_Borrow key = pool_key(&_Const *oldDtd);  // BUG: key borrows OLD pool, stored for NEW dtd
+  pool_free(oldDtd);                                    // XML_ParserReset(parent) frees old pool
+  char c = key_first(key);                              // child resolves attr against stale key
+  pool_free(newDtd);
+  return c;
+}
+int main(void) { return (int)dtdCopy_wrong(); }
