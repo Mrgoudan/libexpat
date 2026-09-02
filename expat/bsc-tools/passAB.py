@@ -83,9 +83,24 @@ s=s.replace('#define poolLastChar(pool) (((pool)->ptr)[-1])','#define poolLastCh
 s=s.replace('#  define MUST_CONVERT(enc, s) (! (enc)->isUtf8)','#  define MUST_CONVERT(enc, s) (_Unsafe(! (enc)->isUtf8))')
 s=s.replace('#  define MUST_CONVERT(enc, s) (! (enc)->isUtf16)','#  define MUST_CONVERT(enc, s) (_Unsafe(! (enc)->isUtf16))')
 # MALLOC/REALLOC/FREE: borrow the parser argument so raw and borrowed callers both work
-s=s.replace('#  define MALLOC(parser, s) (parser->m_mem.malloc_fcn((s)))','#  define MALLOC(parser, s) (_Unsafe((parser)->m_mem.malloc_fcn((s))))')
-s=s.replace('#  define REALLOC(parser, p, s) (parser->m_mem.realloc_fcn((p), (s)))','#  define REALLOC(parser, p, s) (_Unsafe((parser)->m_mem.realloc_fcn((p), (s))))')
-s=s.replace('#  define FREE(parser, p) (parser->m_mem.free_fcn((p)))','#  define FREE(parser, p) (_Unsafe((parser)->m_mem.free_fcn((p))))')
+s=s.replace('''#  define MALLOC(parser, s) (parser->m_mem.malloc_fcn((s)))
+#  define REALLOC(parser, p, s) (parser->m_mem.realloc_fcn((p), (s)))
+#  define FREE(parser, p) (parser->m_mem.free_fcn((p)))''','''#  define MALLOC(parser, s) (expat_plain_malloc((parser), (s)))
+#  define REALLOC(parser, p, s) (expat_plain_realloc((parser), (p), (s)))
+#  define FREE(parser, p) (expat_plain_free((parser), (p)))
+_Safe static inline void *_Nullable expat_plain_malloc(XML_Parser _Borrow parser,
+                                                       size_t s) {
+  return _Unsafe(parser->m_mem.malloc_fcn(s));
+}
+_Safe static inline void *_Nullable expat_plain_realloc(XML_Parser _Borrow parser,
+                                                        void *_Nullable p,
+                                                        size_t s) {
+  return _Unsafe(parser->m_mem.realloc_fcn(p, s));
+}
+_Safe static inline void expat_plain_free(XML_Parser _Borrow parser,
+                                          void *_Nullable p) {
+  _Unsafe parser->m_mem.free_fcn(p);
+}''')
 
 # 4/5. _Safe on definitions and prototypes
 lines=s.split('\n')

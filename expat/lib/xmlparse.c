@@ -877,9 +877,22 @@ struct XML_ParserStruct {
 #  define REALLOC(parser, p, s) (expat_realloc((parser), (p), (s), __LINE__))
 #  define FREE(parser, p) (expat_free((parser), (p), __LINE__))
 #else
-#  define MALLOC(parser, s) (_Unsafe((parser)->m_mem.malloc_fcn((s))))
-#  define REALLOC(parser, p, s) (_Unsafe((parser)->m_mem.realloc_fcn((p), (s))))
-#  define FREE(parser, p) (_Unsafe((parser)->m_mem.free_fcn((p))))
+#  define MALLOC(parser, s) (expat_plain_malloc((parser), (s)))
+#  define REALLOC(parser, p, s) (expat_plain_realloc((parser), (p), (s)))
+#  define FREE(parser, p) (expat_plain_free((parser), (p)))
+_Safe static inline void *_Nullable expat_plain_malloc(XML_Parser _Borrow parser,
+                                                       size_t s) {
+  return _Unsafe(parser->m_mem.malloc_fcn(s));
+}
+_Safe static inline void *_Nullable expat_plain_realloc(XML_Parser _Borrow parser,
+                                                        void *_Nullable p,
+                                                        size_t s) {
+  return _Unsafe(parser->m_mem.realloc_fcn(p, s));
+}
+_Safe static inline void expat_plain_free(XML_Parser _Borrow parser,
+                                          void *_Nullable p) {
+  _Unsafe parser->m_mem.free_fcn(p);
+}
 #endif
 // Borrow the parser behind a raw back-reference for one allocator call.
 #define PARSER_OF(x) (_Unsafe(&_Mut *(x)->parser))
@@ -1408,7 +1421,7 @@ parserCreate(const XML_Char *_Nonnull encodingName,
       _Unsafe parser = (XML_Parser)((char *)sizeAndParser + sizeof(size_t)
                             + EXPAT_MALLOC_PADDING);
 #else
-    parser = memsuite->malloc_fcn(sizeof(struct XML_ParserStruct));
+    _Unsafe parser = memsuite->malloc_fcn(sizeof(struct XML_ParserStruct));
     if (parser != nullptr) {
 #endif
       _Unsafe mtemp = (XML_Memory_Handling_Suite *)_Unsafe(_Unsafe(&parser->m_mem));
@@ -1426,7 +1439,7 @@ parserCreate(const XML_Char *_Nonnull encodingName,
       _Unsafe parser = (XML_Parser)((char *)sizeAndParser + sizeof(size_t)
                             + EXPAT_MALLOC_PADDING);
 #else
-    parser = malloc(sizeof(struct XML_ParserStruct));
+    _Unsafe parser = malloc(sizeof(struct XML_ParserStruct));
     if (parser != nullptr) {
 #endif
       _Unsafe mtemp = (XML_Memory_Handling_Suite *)_Unsafe(_Unsafe(&parser->m_mem));
@@ -1500,11 +1513,12 @@ parserCreate(const XML_Char *_Nonnull encodingName,
     return nullptr;
   }
 #ifdef XML_ATTR_INFO
+  __auto_type bsc_h44 = p->m_attsSize;
   p->m_attInfo = TAKE_ARRAY(
-      XML_AttrInfo, MALLOC(p, p->m_attsSize * sizeof(XML_AttrInfo)));
+      XML_AttrInfo, MALLOC(p, bsc_h44 * sizeof(XML_AttrInfo)));
   if (p->m_attInfo == nullptr) {
     FREE_ARRAY(p, p->m_atts, ATTRIBUTE);
-    FREE(p, rawParser);
+    _Unsafe FREE(p, rawParser);
     return nullptr;
   }
 #endif
@@ -2150,7 +2164,9 @@ _Safe const XML_AttrInfo *XMLCALL
 XML_GetAttributeInfo(XML_Parser _Borrow _Nullable parser) {
   if (parser == nullptr)
     return nullptr;
-  return parser->m_attInfo;
+  if (parser->m_attInfo == nullptr)
+    return nullptr;
+  return _Unsafe((const XML_AttrInfo *)&_Const *parser->m_attInfo);
 }
 #endif
 
@@ -2454,7 +2470,7 @@ XML_Parse(XML_Parser _Borrow _Nullable parser, const char *s, int len, int isFin
 
 #if XML_CONTEXT_BYTES == 0
   if (parser->m_bufferPtr == parser->m_bufferEnd) {
-    const char *end;
+    const char *end = nullptr;
     int nLeftOver;
     enum XML_Status result;
     /* Detect overflow (a+b > MAX <==> b > MAX-a) */
@@ -2471,8 +2487,10 @@ XML_Parse(XML_Parser _Borrow _Nullable parser, const char *s, int len, int isFin
     parser->m_positionPtr = s;
     parser->m_parsingStatus.finalBuffer = (XML_Bool)isFinal;
 
+    parser->m_parseEndPtr = s + len;
+    __auto_type bsc_h48 = parser->m_parseEndPtr;
     parser->m_errorCode
-        = callProcessor(parser, s, parser->m_parseEndPtr = s + len, _Unsafe(&end));
+        = callProcessor(parser, s, bsc_h48, _Unsafe(&end));
 
     if (parser->m_errorCode != XML_ERROR_NONE) {
       parser->m_eventEndPtr = parser->m_eventPtr;
@@ -2497,7 +2515,7 @@ XML_Parse(XML_Parser _Borrow _Nullable parser, const char *s, int len, int isFin
 
     XmlUpdatePosition(parser->m_encoding, parser->m_positionPtr, end,
                       _Unsafe(&parser->m_position));
-    nLeftOver = s + len - end;
+    nLeftOver = (int)(s + len - end);
     if (nLeftOver) {
       // Back up and restore the parsing status to avoid XML_ERROR_SUSPENDED
       // (and XML_ERROR_FINISHED) from XML_GetBuffer.
@@ -4063,8 +4081,9 @@ storeAtts(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc, const char *a
     }
 
     XML_Bool attInfoOk = XML_FALSE;
+    __auto_type bsc_h45 = parser->m_attsSize;
     REALLOC_ARRAY(parser, parser->m_attInfo, XML_AttrInfo,
-                  parser->m_attsSize * sizeof(XML_AttrInfo), attInfoOk);
+                  bsc_h45 * sizeof(XML_AttrInfo), attInfoOk);
     if (! attInfoOk) {
       parser->m_attsSize = oldAttsSize;
       return XML_ERROR_NO_MEMORY;
@@ -4101,15 +4120,15 @@ storeAtts(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc, const char *a
     //       uncommon) XML_LARGE_SIZE is defined.
     //       That's a bug and it only lives on because we cannot break
     //       ABI compatibility of public API.
-    currAttInfo->nameStart
+    _Unsafe currAttInfo->nameStart
         = (XML_Index)(parser->m_parseEndByteIndex
                       - (parser->m_parseEndPtr - currAtt->name));
-    currAttInfo->nameEnd
+    _Unsafe currAttInfo->nameEnd
         = currAttInfo->nameStart + XmlNameLength(enc, currAtt->name);
-    currAttInfo->valueStart
+    _Unsafe currAttInfo->valueStart
         = (XML_Index)(parser->m_parseEndByteIndex
                       - (parser->m_parseEndPtr - currAtt->valuePtr));
-    currAttInfo->valueEnd
+    _Unsafe currAttInfo->valueEnd
         = (XML_Index)(parser->m_parseEndByteIndex
                       - (parser->m_parseEndPtr - currAtt->valueEnd));
 #endif
@@ -5917,13 +5936,14 @@ doProlog(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc, const char *s,
         // This will store "&amp;entity123;" in parser->m_declEntity->textPtr
         // to end up as "&entity123;" in the handler.
         if (parser->m_declEntity != nullptr) {
+          __auto_type bsc_h46 = parser->m_declEntity;
           const enum XML_Error result
-              = storeSelfEntityValue(parser, parser->m_declEntity);
+              = storeSelfEntityValue(parser, bsc_h46);
           if (result != XML_ERROR_NONE)
             return result;
 
           if (parser->m_entityDeclHandler) {
-            *eventEndPP = s;
+            _Unsafe *eventEndPP = s;
             beforeHandler(parser);
             _Unsafe(parser->m_entityDeclHandler(
                 parser->m_handlerArg, parser->m_declEntity->name,
@@ -6000,8 +6020,9 @@ doProlog(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc, const char *s,
       // This will store "&amp;entity123;" in entity->textPtr
       // to end up as "&entity123;" in the handler.
       if (parser->m_declEntity != nullptr) {
+        __auto_type bsc_h47 = parser->m_declEntity;
         const enum XML_Error result
-            = storeSelfEntityValue(parser, parser->m_declEntity);
+            = storeSelfEntityValue(parser, bsc_h47);
         if (result != XML_ERROR_NONE)
           return result;
       }
@@ -7358,10 +7379,10 @@ storeSelfEntityValue(XML_Parser _Borrow parser, ENTITY *_Nonnull entity) {
   const char *const entity_start = "&amp;";
   const char *const entity_end = ";";
 
-  STRING_POOL *const pool = _Unsafe(&_Mut parser->m_dtd->entityValuePool);
-  if (! poolAppendString(pool, entity_start)
+  STRING_POOL *_Borrow pool = _Unsafe(&_Mut parser->m_dtd->entityValuePool);
+  if (_Unsafe((! poolAppendString(pool, entity_start)
       || ! poolAppendString(pool, entity->name)
-      || ! poolAppendString(pool, entity_end)) {
+      || ! poolAppendString(pool, entity_end)))) {
     poolDiscard(pool);
     return XML_ERROR_NO_MEMORY;
   }
@@ -7371,8 +7392,8 @@ storeSelfEntityValue(XML_Parser _Borrow parser, ENTITY *_Nonnull entity) {
     poolDiscard(pool);
     return XML_ERROR_NO_MEMORY;
   }
-  entity->textPtr = poolStart(pool);
-  entity->textLen = (int)(poolLength(pool));
+  _Unsafe entity->textPtr = poolStart(pool);
+  _Unsafe entity->textLen = (int)(poolLength(pool));
   poolFinish(pool);
 
   return XML_ERROR_NONE;

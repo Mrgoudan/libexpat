@@ -508,5 +508,19 @@ rep("""  struct open_internal_entity *next;
   ENTITY *entity;""", """  struct open_internal_entity *next;
   ENTITY *_Nonnull entity;""")
 
+# configuration variants: XML_CONTEXT_BYTES == 0 and XML_GE == 0 code
+rep("""    nLeftOver = s + len - end;""", """    nLeftOver = (int)(s + len - end);""")
+rep("""  STRING_POOL *const pool = &(parser->m_dtd->entityValuePool);""", """  STRING_POOL *_Borrow pool = _Unsafe(&_Mut parser->m_dtd->entityValuePool);""")
+
+rep("""    const char *end;
+    int nLeftOver;
+    enum XML_Status result;""", """    const char *end = NULL;
+    int nLeftOver;
+    enum XML_Status result;""")
+rep("""    parser->m_errorCode
+        = callProcessor(parser, s, parser->m_parseEndPtr = s + len, &end);""", """    parser->m_parseEndPtr = s + len;
+    parser->m_errorCode
+        = callProcessor(parser, s, parser->m_parseEndPtr, &end);""")
+
 open(p, 'w').write(s)
 print('pre ok')

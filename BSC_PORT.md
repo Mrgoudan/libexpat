@@ -151,7 +151,7 @@ Remaining cluster review (read the generated code, shrink `_Unsafe` regions, add
 - [ ] Draft the private report for confirmed new bugs (per `SECURITY.md`); request a CVE once the maintainer confirms
 
 ### Phase 6 — wrap-up
-- [ ] Final `bsc.sh all` (4884/0) and `bsc.sh asan` green; metrics: counts of `_Safe`, `_Owned`, `_Borrow`, `_Nullable`, `_Unsafe`
+- [x] Verified 2026-09-02: BSC default 4884/0, `EXPAT_ATTR_INFO=ON` 4884/0, `EXPAT_DTD=OFF EXPAT_GE=OFF` 3396/0, `EXPAT_CONTEXT_BYTES=0` 4872/0, `EXPAT_NS=OFF` 4884/0, plain-C ASan/UBSan 4884/0. xmlparse.c metrics: 267 `_Safe`, 307 `_Borrow`, 24 `_Owned`, 110 `_Nullable`, 127 `_Nonnull`, 1096 `_Unsafe`, 0 warnings. Compiler note: the BSC borrow checker segfaults on `_Unsafe((&_Mut *p)->fn(x))` inside an `_Unsafe` block (GE=0 allocator macros); worked around with `_Safe` inline allocator wrappers
 - [ ] Push `bsc-port`, open PR on the fork with the report
 
 ## Bug candidates

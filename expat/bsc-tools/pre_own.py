@@ -313,6 +313,14 @@ rep('''  tagNamePtr->str = binding->uri;
 
 s = s.replace('(const XML_Char **)parser->m_atts)', '(const XML_Char **)(ATTRIBUTE *)&_Mut *parser->m_atts)')
 
+rep('''  if (parser == NULL)
+    return NULL;
+  return parser->m_attInfo;''', '''  if (parser == NULL)
+    return NULL;
+  if (parser->m_attInfo == NULL)
+    return NULL;
+  return _Unsafe((const XML_AttrInfo *)&_Const *parser->m_attInfo);''')
+
 # ---- addBinding
 rep('''      XML_Char *temp
           = REALLOC(parser, b->uri, sizeof(XML_Char) * (len + EXPAND_SPARE));
