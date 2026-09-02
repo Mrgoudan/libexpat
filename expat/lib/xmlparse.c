@@ -1592,7 +1592,7 @@ parserInit(XML_Parser _Borrow parser, const XML_Char *_Nonnull encodingName) {
     parser->m_protocolEncodingName = copyString(encodingName, parser);
   }
   parser->m_curBase = nullptr;
-  _Unsafe(XmlInitEncoding(_Unsafe(&parser->m_initEncoding), _Unsafe(&parser->m_encoding), 0));
+  _Unsafe XmlInitEncoding(_Unsafe(&parser->m_initEncoding), _Unsafe(&parser->m_encoding), 0);
   parser->m_userData = nullptr;
   parser->m_handlerArg = nullptr;
   parser->m_startElementHandler = nullptr;
@@ -3850,7 +3850,7 @@ doContent(XML_Parser _Borrow parser, int startTagLevel, const ENCODING *_Nonnull
       if (parser->m_characterDataHandler) {
         if (MUST_CONVERT(enc, s)) {
           ICHAR *dataPtr = _Unsafe(((ICHAR *)&_Mut *parser->m_dataBuf));
-          _Unsafe(XmlConvert(enc, _Unsafe(&s), end, _Unsafe(&dataPtr), (ICHAR *)parser->m_dataBufEnd));
+          (void)_Unsafe(XmlConvert(enc, _Unsafe(&s), end, _Unsafe(&dataPtr), (ICHAR *)parser->m_dataBufEnd));
           beforeHandler(parser);
           _Unsafe(parser->m_characterDataHandler(
               parser->m_handlerArg, (XML_Char *)&_Mut *parser->m_dataBuf,
@@ -9137,14 +9137,14 @@ entityTrackingReportStats(XML_Parser _Borrow rootParser, ENTITY *_Nonnull entity
       = limitingNeeded ? (maxLimitedDepth - /* make space for ellipis */ 2)
                        : candidateIndentDepth;
 
-  _Unsafe(fprintf(
+  _Unsafe fprintf(
       stderr,
       "expat: Entities(%p): Count %9u, depth %2u/%2u %*s%s%s%s; %s length %d (xmlparse.c:%d)\n",
       (void *)rootParser, rootParser->m_entity_stats.countEverOpened,
       rootParser->m_entity_stats.currentDepth,
       rootParser->m_entity_stats.maximumDepthSeen, indentDepth * 2, "",
       ellipisOrEmpty, entity->is_param ? "%" : "&", entityName, action,
-      entity->textLen, sourceLine));
+      entity->textLen, sourceLine);
 }
 
 _Safe static void
