@@ -144,9 +144,10 @@ Remaining cluster review (read the generated code, shrink `_Unsafe` regions, add
 - [ ] No bare `T *` left in a signature without a reason comment; every `_Unsafe` re-checked by deleting it and recompiling
 
 ### Phase 5 — bug hunting and CVE verification
+- [x] Dynamic side: upstream d9087a1c built with `-fsanitize=fuzzer,address,undefined` (system clang 17, lld) in `build/upstream` + `build/fuzz`; seeds = 542 XML literals extracted from `expat/tests/*.c` plus hand-written DTD seeds; `build/fuzz/xml.dict` dictionary; harness `build/fuzz/harness_ext.c` drives external subsets / parameter entities (input split at NUL), `XML_UseForeignDTD`, namespace triplets, `XML_StopParser`/`XML_ResumeParser` inside handlers, `XML_DefaultCurrent` from element handlers, `XML_ParserReset` — i.e. the paths behind candidates 4, 8, 9, 12, 13
 - [ ] Keep §Bug candidates current during every phase
 - [ ] For each candidate: minimal input → `bsc.sh asan` reproduction → classify (Changes / #1160 / new)
-- [ ] Re-run `bsc.sh strict` on fully ported files and triage what remains
+- [x] `bsc.sh strict` after the null contracts: xmlparse.c 387 -> 185 hits; the residue is raw derefs inside `_Unsafe(...)` where the checker cannot carry facts across the wrapper (see candidates 12-15 for the ones with CVE shape)
 - [ ] Draft the private report for confirmed new bugs (per `SECURITY.md`); request a CVE once the maintainer confirms
 
 ### Phase 6 — wrap-up
