@@ -36,3 +36,6 @@ expat/**/*.sdf
 expat/**/*.VC.db
 expat/tests/**/Debug/
 expat/tests/**/Release/
+
+# local build trees for the BSC port
+build/

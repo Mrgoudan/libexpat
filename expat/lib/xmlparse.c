@@ -854,7 +854,7 @@ struct XML_ParserStruct {
 
 #if XML_GE == 1
 static void
-expat_heap_stat(XML_Parser rootParser, char operator, XmlBigCount absDiff,
+expat_heap_stat(XML_Parser rootParser, char heapOp, XmlBigCount absDiff,
                 XmlBigCount newTotal, XmlBigCount peakTotal, int sourceLine) {
   // NOTE: This can be +infinity or -nan
   const float amplification
@@ -863,7 +863,7 @@ expat_heap_stat(XML_Parser rootParser, char operator, XmlBigCount absDiff,
       stderr,
       "expat: Allocations(%p): Direct " EXPAT_FMT_ULL("10") ", allocated %c" EXPAT_FMT_ULL(
           "10") " to " EXPAT_FMT_ULL("10") " (" EXPAT_FMT_ULL("10") " peak), amplification %8.2f (xmlparse.c:%d)\n",
-      (void *)rootParser, rootParser->m_accounting.countBytesDirect, operator,
+      (void *)rootParser, rootParser->m_accounting.countBytesDirect, heapOp,
       absDiff, newTotal, peakTotal, (double)amplification, sourceLine);
 }
 
