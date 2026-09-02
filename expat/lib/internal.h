@@ -112,6 +112,7 @@
 
 #include <limits.h> // ULONG_MAX
 #include <stddef.h> // size_t
+#include "bsc_compat.h"
 
 #if defined(_WIN32)                                                            \
     && (! defined(__USE_MINGW_ANSI_STDIO)                                      \

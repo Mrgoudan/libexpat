@@ -117,6 +117,7 @@ EXTRA_DIST = \
     fallthrough.h \
     iasciitab.h \
     internal.h \
+    bsc_compat.h \
     latin1tab.h \
     libexpat.def.cmake \
     memory_sanitizer.h \
