@@ -154,6 +154,12 @@ Remaining cluster review (read the generated code, shrink `_Unsafe` regions, add
 - [x] Verified 2026-09-02: BSC default 4884/0, `EXPAT_ATTR_INFO=ON` 4884/0, `EXPAT_DTD=OFF EXPAT_GE=OFF` 3396/0, `EXPAT_CONTEXT_BYTES=0` 4872/0, `EXPAT_NS=OFF` 4884/0, plain-C ASan/UBSan 4884/0. xmlparse.c metrics: 267 `_Safe`, 307 `_Borrow`, 24 `_Owned`, 110 `_Nullable`, 127 `_Nonnull`, 1096 `_Unsafe`, 0 warnings. Compiler note: the BSC borrow checker segfaults on `_Unsafe((&_Mut *p)->fn(x))` inside an `_Unsafe` block (GE=0 allocator macros); worked around with `_Safe` inline allocator wrappers
 - [ ] Push `bsc-port`, open PR on the fork with the report
 
+## Findings so far (2026-09-02)
+
+- Acceptance criterion 1 (whole port): met. All three library sources are `_Safe` end to end with `_Borrow`/`_Owned`/`_Nullable`/`_Nonnull` contracts; suites pass in every configuration (table in Phase 6).
+- Acceptance criterion 2 (new CVE): not met yet. BSC surfaced 16 candidates; the ones with CVE shape (4, 12, 13, 15) were reviewed to invariants of the xmlrole state machine and the entity stack; candidate 16 is a real copy-consistency defect (child DTD attribute maps alias the parent's pool strings) but not independently exploitable. Dynamic hunting on unmodified upstream with ASan/UBSan libFuzzer: first 25-minute campaigns found nothing; longer campaigns are running (`build/fuzz/run_*2.log`, UTF-16 and ISO-8859-1 pinned variants).
+- Side result: a BiSheng C compiler crash (borrow checker segfault) reproducible from this tree, see Phase 6.
+
 ## Bug candidates
 
 | # | Where (file:line, function) | BSC signal | Hypothesis | Status |
