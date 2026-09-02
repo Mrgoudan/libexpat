@@ -68,20 +68,20 @@ mentions them.
 
 | Struct / field | Decision | Freed by |
 |---|---|---|
-| `XML_ParserStruct.m_buffer` | `char *_Owned _Nullable` (raw `.malloc_fcn`, not MALLOC) | `XML_ParserFree`, `XML_GetBuffer` |
-| `m_dataBuf`, `m_atts`, `m_attInfo`, `m_nsAtts`, `m_groupConnector`, `m_unknownEncodingMem` | `_Owned _Nullable` | `XML_ParserFree`, `parserCreate` on allocation failure |
-| `m_protocolEncodingName` | `const XML_Char *_Owned _Nullable` (freed through a cast) | `XML_ParserFree`, `XML_SetEncoding`, `XML_ParserReset` |
-| `m_dtd` | owned unless `m_isParamEntity` (child shares the parent's DTD) | `XML_ParserFree` via `dtdDestroy(.., !m_parentParser)`; decide raw+`_Unsafe` vs. explicit flag |
+| `XML_ParserStruct.m_buffer` | raw (parse window with four cursor aliases `m_bufferPtr/End/Lim`; allocated by plain `.malloc_fcn`) | `XML_ParserFree`, `setParserBuffer` |
+| `m_dataBuf`, `m_atts`, `m_attInfo`, `m_nsAtts`, `m_groupConnector`, `m_unknownEncodingMem` | `T *_Owned _ArrayElem _Nullable` (done) | `FREE_ARRAY` in `XML_ParserFree`, `parserCreate` failure paths, `XML_ParserReset` |
+| `m_protocolEncodingName` | `XML_Char *_Owned _ArrayElem _Nullable` from `copyString` (done) | `FREE_ARRAY` in `XML_ParserFree`, `XML_SetEncoding`, `XML_ParserReset` |
+| `m_dtd` | raw `DTD *` (shared with parameter-entity child parsers); every internal function borrows it through a raw local after a null check (`dtdRaw`) | `XML_ParserFree` via `dtdDestroy(.., !m_parentParser)` |
 | `m_tagStack`, `m_freeTagList` (TAG list), `TAG.buf.raw` | raw intrusive list nodes; `buf.raw` `_Owned` | `XML_ParserFree`, `parserInit` |
 | `TAG.parent`, `TAG.bindings`, `TAG.rawName`, `TAG.name.*` | raw: back-ref and interior pointers into `buf` | — |
-| `BINDING.uri` | `XML_Char *_Owned _Nullable` | `destroyBindings`, `addBinding` |
+| `BINDING.uri` | `XML_Char *_Owned _ArrayElem _Nullable` (done); raw views via `&_Mut *b->uri` | `destroyBindings`, `storeAtts`, `addBinding` (`REALLOC_ARRAY`) |
 | `BINDING.prefix/attId/nextTagBinding/prevPrefixBinding`, `PREFIX.binding` | raw list links / borrows into DTD tables | — |
 | `m_openInternalEntities`, `m_openAttributeEntities`, `m_openValueEntities`, `m_freeEntities` | raw intrusive lists of MALLOC'd nodes | `XML_ParserFree` |
 | `STRING_POOL.blocks/freeBlocks` (BLOCK list) | raw intrusive list | `poolDestroy` |
 | `STRING_POOL.start/ptr/end` | raw interior cursors | — |
-| `HASH_TABLE.v` | `NAMED **` `_Owned _Nullable` array; entries live in `dtd->pool` | `hashTableDestroy` |
-| `DTD.scaffold`, `DTD.scaffIndex` | `_Owned _Nullable` | `dtdDestroy`, `dtdReset` |
-| `ELEMENT_TYPE.defaultAtts` | `_Owned _Nullable` | `dtdDestroy`, `dtdReset` |
+| `HASH_TABLE.v` | `NAMED **_Owned _ArrayElem _Nullable` (done); slots hold raw MALLOC'd entries | `hashTableDestroy`, rehash in `lookupWithLength` |
+| `DTD.scaffold`, `DTD.scaffIndex` | raw: `dtdCopy` aliases the parent's arrays into the child DTD (`newDtd->scaffold = oldDtd->scaffold`), only the document DTD frees them (bug candidate 8) | `dtdDestroy(isDocEntity)`, `dtdReset` |
+| `ELEMENT_TYPE.defaultAtts` | `DEFAULT_ATTRIBUTE *_Owned _ArrayElem _Nullable` (done) | `dtdDestroy`, `dtdReset`, `defineAttribute` (`REALLOC_ARRAY`) |
 | `XML_Content` from `build_model` | `_Owned`, transferred to the application | app via `XML_FreeContentModel` |
 | `ENCODING *m_encoding`, `m_internalEncoding` | static tables or `m_unknownEncodingMem`: likely raw | — |
 | `m_parentParser`, `m_externalEntityRefHandlerArg` | raw back-refs | — |
@@ -95,14 +95,13 @@ mentions them.
 - [x] Rename `operator` param in `expat_heap_stat` (BSC keyword)
 - [x] `EXPAT_BSC` CMake option (lib-only `-x bsc`, links `bishengc_safety.cbs`); BSC-mode tests 4884/0
 - [x] `expat/bsc.sh` helper, `CLAUDE.md` compile command, this plan
-- [ ] Commit Phase 0 and push `bsc-port` to `fork` (needs user go-ahead)
+- [x] Commit Phase 0 and push `bsc-port` to `fork`
 
-### Phase 1 — allocation plumbing (xmlparse.c)
-- [ ] Add `#include "bishengc_safety.hbs"` to xmlparse.c; confirm `bsc.sh all` still 4884/0
-- [ ] Wrap `MALLOC/REALLOC/FREE` and raw `.malloc_fcn` calls: `__take_from_raw` after alloc,
-      `__move_to_raw` before free; cover the `expat_malloc`/`expat_realloc`/`expat_free` tracker (`XML_GE == 1`)
-- [ ] `REALLOC` sites (xmlparse.c lines 1036, 3146, 3518, 3920, 4125, 4539, 6014, 6043, 8482): move old out, realloc, re-wrap old when realloc returns NULL
-- [ ] Fill the Ownership map above for every field; note conditional owners
+### Phase 1 — allocation plumbing (xmlparse.c) — done 2026-09-02
+- [x] `bsc_compat.h` (included from internal.h) brings in `bishengc_safety.hbs` under BSC and erases the annotations under plain C
+- [x] Owned array fields with `TAKE_ARRAY` / `REALLOC_ARRAY` / `FREE_ARRAY` helpers (see Ownership map); the parser object is `XML_Parser _Owned _Nullable` from `parserCreate` to `XML_ParserFree`
+- [x] `REALLOC_ARRAY` keeps the old buffer owned by the field when realloc fails (7 sites); `pool->blocks`, `tag->buf.raw` (union), `dtd->scaffold/scaffIndex` stay raw (see map)
+- [x] Ownership map filled
 - [ ] Triage the 67 strict-mode init-analysis hits (line:variable, `?` = possibly uninitialized). Expect most to be locals initialised through a pointer (`sip24_init(&key)`, `hashTableIterInit(&iter)`), which need `__attribute__((ensure_init))` on the initialiser rather than a code change; anything left is a bug candidate:
       - `siphash.h` `sip24_valid`: 364:k, 370:in, 370:k
       - `xmlparse.c` `accountingDiffTolerated`: 8800:levelsAwayFromRootParser, 8828:levelsAwayFromRootParser
@@ -124,20 +123,16 @@ mentions them.
       - `xmltok.c` `unknown_toUtf8`: 1376:buf, 1379:buf
       - `xmltok_impl.c` `PREFIX`: 296:tok, 309:tok, 319:tok, 327:tok
 
-### Phase 2 — xmlrole.c (54 functions, 1257 lines)
-- [ ] `PROLOG_STATE *state` → `_Borrow`; `enc` → `const ENCODING *_Borrow`; `ptr/end` stay raw cursors
-- [ ] Mark all handlers `_Safe`; run `bsc.sh check xmlrole.c`; log every error
-- [ ] `bsc.sh all` 4884/0; commit "xmlrole.c: BSC port"
+### Phase 2 — xmlrole.c — done (commit ba929152)
+- [x] `PROLOG_STATE *_Borrow state`, `_Safe` handler function-pointer type, `XmlTokenRole` as a `_Safe` inline function; `enc` stays raw (static vtable); 4884/0
 
-### Phase 3 — tokenizer: xmltok.c + xmltok_impl.c + xmltok_ns.c (~137 functions)
-- [ ] `ENCODING` vtable: decide `const ENCODING *_Borrow` vs raw for `enc` (function-pointer table called through macros)
-- [ ] `xmltok_impl.c` template: port once, verify the normal/big2/little2 instantiations compile
-- [ ] `utf8Convert`/`utf16Convert` `fromP`/`toP` double pointers: raw with reason
-- [ ] `XmlInitUnknownEncoding` / `unknown_*` over `m_unknownEncodingMem`: ownership
+### Phase 3 — tokenizer — done (commit ae7072ae, subagent)
+- [x] All 87 tokenizer functions `_Safe`; vtable slots are `_Safe` fn-pointer types; `enc` and cursors raw; 175 `_Unsafe` regions (37 whole loops); `Xml*` call macros wrap their vtable deref in `_Unsafe(...)`; 4884/0 in BSC and ASan builds
 - [ ] `siphash.h`: `_Nonnull` on `sip_*` params (strict-probe noise source)
-- [ ] `bsc.sh all` 4884/0; commit
 
-### Phase 4 — xmlparse.c by cluster (188 functions, 9469 lines)
+### Phase 4 — xmlparse.c — bulk port done 2026-09-02 (all 188 functions `_Safe` except the app callback `callUnknownEncodingConvert` and the static table getter `XML_GetFeatureList`)
+The port is generated from upstream xmlparse.c by the scripts in `expat/bsc-tools/` (order: `pre_own.py`, `pre.py`, `passAB.py`, then `passC.py` iterated until the compiler is clean, then `post.py`); every `_Unsafe` in the result answers a specific compiler diagnostic. Result: 4884/0 in the BSC build and in the plain-C ASan build. Metrics: 267 `_Safe`, 307 `_Borrow`, 24 `_Owned`, 100 `_Nullable`, 1097 `_Unsafe` regions, 44 hoisted temporaries, 23 `FREE_ARRAY` / 7 `REALLOC_ARRAY` / 9 `TAKE_ARRAY` sites.
+Remaining cluster review (read the generated code, shrink `_Unsafe` regions, add `_Nonnull`/`_Nullable` on raw params, run strict mode):
 - [ ] 4a **string pool + hash table + copyString** (`pool*`, `hash`, `lookup`, `lookupWithLength`, `hashTable*`, `copyString`, `keylen`, `keyeq`) — CVE-2022-25314/25315/22825, CVE-2024-45492, CVE-2026-56408
 - [ ] 4b **DTD lifecycle** (`dtdCreate/Reset/Destroy/Copy`, `copyEntityTable`, `getElementType`, `getAttributeId`, `defineAttribute`, `setElementTypePrefix`) — CVE-2024-45491, CVE-2022-22824, CVE-2026-56405
 - [ ] 4c **tags + bindings + attributes** (`storeRawNames`, `storeAtts`, `addBinding`, `freeBindings`, `destroyBindings`, `moveToFreeBindingList`, `is_rfc3986_uri_char`) — CVE-2022-22822/22827, CVE-2026-56403/56404, CVE-2026-66046
