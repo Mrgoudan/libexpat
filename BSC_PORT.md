@@ -160,6 +160,26 @@ Remaining cluster review (read the generated code, shrink `_Unsafe` regions, add
 - Acceptance criterion 2 (new CVE): not met yet. BSC surfaced 16 candidates; the ones with CVE shape (4, 12, 13, 15) were reviewed to invariants of the xmlrole state machine and the entity stack; candidate 16 is a real copy-consistency defect (child DTD attribute maps alias the parent's pool strings) but not independently exploitable (PoC `expat/bsc-tools/poc16.c`: after `XML_ParserReset(parent)` the child still normalizes correctly, so the stale keys do not fault; the free-first variant faults in `getRootParserOf`, i.e. the already-documented "free child before parent" misuse, not the aliasing). Dynamic hunting on unmodified upstream with ASan/UBSan libFuzzer: first 25-minute campaigns found nothing; longer campaigns are running (`build/fuzz/run_*2.log`, UTF-16 and ISO-8859-1 pinned variants).
 - Side result: a BiSheng C compiler crash (borrow checker segfault) reproducible from this tree, see Phase 6.
 
+
+## Active invariant-reading pass 2 (2026-09-02, results)
+
+Method: state each function's memory-safety invariant, then try to break it with a crafted input on the plain-C ASan/UBSan build. All REAL runs.
+
+Functions read and RULED OUT (invariant holds, reason):
+- `storeRawNames` tag-buffer realloc: rebases `name.str`/`name.localPart` before use; `name.str` in NS mode points into `binding->uri`, not the tag buffer. Sound.
+- `storeAtts` `binding->uri` realloc: rebases every `tag->name.str == binding->uri` in the stack before `FREE`; `.str` is always the buffer start, never a mid-offset. Sound.
+- isCdata hash lookup (CVE-2026-66046 fix): `nameAndDefaultAttribute->attIndex < nDefaultAtts` holds because `defineAttribute` sets `attIndex` before the increment and `dtdCopy` sets `attIndex = i`; `defaultAttForName` and `nDefaultAtts` only grow/reset together. Sound.
+- `m_groupConnector[level]`: table doubled whenever `level >= m_groupSize`, level rises by 1 per group. Sound.
+- Unterminated-key hash lookup (PR #1325/#1334): `keyeq(s1,len,s2)` requires `s2[len]==' '`; every caller passes `keylen(name)`, so the terminator invariant holds. Feature dormant. Sound.
+- `normalizePublicId`/`normalizeLines` in-place rewrites: write pointer never passes read pointer (compaction). Sound.
+- char-ref encode into `buf[XML_ENCODE_MAX]`: `n` bounded `[0,0x110000)` by `checkCharRefNumber`, `XmlUtf8Encode` writes <= 4. Sound.
+
+Crafted inputs run through ASan (all clean): namespace prefix rebinding with deep nesting and URI growth; content-model scaffolds 60 deep and 200 wide; tokenized default attr shared across elements; 50 default attributes; external-subset default attrs; param-entity element decls.
+
+Dynamic negative result: **0 UBSan `runtime error:` lines across ~140M fuzz executions**, and a halt-on-UB (`-fno-sanitize-recover=all`) replay of the entire accumulated corpus returned rc=0 with 0 UB/ASan lines. A fresh halt-on-UB fork-fuzz campaign is running to hunt integer-overflow UB going forward.
+
+Conclusion so far: libexpat 2.8.4 is hardened against the memory-safety and integer-overflow classes reachable by these paths. Invariant reading + fuzzing yield candidate 16 (real, non-exploitable) and no new memory bug. The BSC value shown is compile-time exposure of the bug class (expat/bsc-tools/exposure/).
+
 ## Bug candidates
 
 | # | Where (file:line, function) | BSC signal | Hypothesis | Status |
