@@ -383,7 +383,7 @@ s = re.sub(r'\bconst char \*\*nextPtr\b', r'const char **_Nonnull nextPtr', s)
 # storeEntityValue / appendAttributeValue accept a NULL nextPtr
 s = re.sub(r'(storeEntityValue\([^;{]*?)const char \*\*_Nonnull nextPtr', r'\1const char **_Nullable nextPtr', s, flags=re.S)
 s = re.sub(r'(appendAttributeValue\([^;{]*?)const char \*\*_Nonnull nextPtr', r'\1const char **_Nullable nextPtr', s, flags=re.S)
-s = re.sub(r'\bENTITY \*entity\b', r'ENTITY *_Nonnull entity', s)
+s = re.sub(r'\bENTITY \*entity(?=\s*[,)])', r'ENTITY *_Nonnull entity', s)
 s = re.sub(r'\bPREFIX \*prefix(?=\s*[,)])', r'PREFIX *_Nonnull prefix', s)
 s = re.sub(r'\bconst ATTRIBUTE_ID \*attId(?=\s*[,)])', r'const ATTRIBUTE_ID *_Nullable attId', s)
 s = re.sub(r'\bATTRIBUTE_ID \*attId(?=\s*[,)])', r'ATTRIBUTE_ID *_Nonnull attId', s)
@@ -502,6 +502,11 @@ rep("""        const XML_Char *const prefixName = poolCopyStringNoFinish(
           return XML_FALSE;
         const XML_Char *const prefixName
             = poolCopyStringNoFinish(&dtd->pool, tempName);""")
+
+# an open entity record always names its entity
+rep("""  struct open_internal_entity *next;
+  ENTITY *entity;""", """  struct open_internal_entity *next;
+  ENTITY *_Nonnull entity;""")
 
 open(p, 'w').write(s)
 print('pre ok')

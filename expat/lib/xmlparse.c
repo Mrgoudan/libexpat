@@ -3512,7 +3512,7 @@ doContent(XML_Parser _Borrow parser, int startTagLevel, const ENCODING *_Nonnull
       return XML_ERROR_PARTIAL_CHAR;
     case XML_TOK_ENTITY_REF: {
       const XML_Char *name;
-      ENTITY *_Nonnull entity;
+      ENTITY *entity;
       XML_Char ch = (XML_Char)XmlPredefinedEntityName(
           enc, s + _Unsafe(enc->minBytesPerChar), next - _Unsafe(enc->minBytesPerChar));
       if (ch) {
@@ -5653,8 +5653,8 @@ doProlog(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc, const char *s,
         dtd->hasParamEntityRefs = XML_TRUE;
         if (parser->m_paramEntityParsing
             && parser->m_externalEntityRefHandler) {
-          _Unsafe ENTITY *_Nonnull entity = (ENTITY *)lookup(parser, &_Mut dtd->paramEntities,
-                                            externalSubsetName, sizeof(ENTITY));
+          ENTITY *entity = _Unsafe(((ENTITY *)lookup(parser, &_Mut dtd->paramEntities,
+                                            externalSubsetName, sizeof(ENTITY))));
           if (! entity) {
             /* The external subset name "#" will have already been
              * inserted into the hash table at the start of the
@@ -5710,8 +5710,8 @@ doProlog(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc, const char *s,
         dtd->hasParamEntityRefs = XML_TRUE;
         if (parser->m_paramEntityParsing
             && parser->m_externalEntityRefHandler) {
-          _Unsafe ENTITY *_Nonnull entity = (ENTITY *)lookup(parser, &_Mut dtd->paramEntities,
-                                            externalSubsetName, sizeof(ENTITY));
+          ENTITY *entity = _Unsafe(((ENTITY *)lookup(parser, &_Mut dtd->paramEntities,
+                                            externalSubsetName, sizeof(ENTITY))));
           if (! entity)
             return XML_ERROR_NO_MEMORY;
           _Unsafe entity->base = parser->m_curBase;
@@ -6286,7 +6286,7 @@ doProlog(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc, const char *s,
         dtd->keepProcessing = dtd->standalone;
       else {
         const XML_Char *name;
-        ENTITY *_Nonnull entity;
+        ENTITY *entity;
         name = poolStoreString(&_Mut dtd->pool, enc, s + _Unsafe(enc->minBytesPerChar),
                                next - _Unsafe(enc->minBytesPerChar));
         if (! name)
@@ -6721,7 +6721,7 @@ internalEntityProcessor(XML_Parser _Borrow parser, const char *s, const char *en
   UNUSED_P(s);
   UNUSED_P(end);
   UNUSED_P(nextPtr);
-  ENTITY *_Nonnull entity;
+  ENTITY *entity;
   const char *textStart, *textEnd;
   const char *next;
   enum XML_Error result;
@@ -6964,7 +6964,7 @@ appendAttributeValue(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc, XM
       break;
     case XML_TOK_ENTITY_REF: {
       const XML_Char *name;
-      ENTITY *_Nonnull entity;
+      ENTITY *entity;
       bool checkEntityDecl;
       XML_Char ch = (XML_Char)XmlPredefinedEntityName(
           enc, ptr + _Unsafe(enc->minBytesPerChar), next - _Unsafe(enc->minBytesPerChar));
@@ -7134,7 +7134,7 @@ storeEntityValue(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc,
 #  ifdef XML_DTD
       if (parser->m_isParamEntity || enc != parser->m_encoding) {
         const XML_Char *name;
-        ENTITY *_Nonnull entity;
+        ENTITY *entity;
         name = poolStoreString(&_Mut parser->m_tempPool, enc,
                                entityTextPtr + _Unsafe(enc->minBytesPerChar),
                                next - _Unsafe(enc->minBytesPerChar));
