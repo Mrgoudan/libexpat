@@ -294,8 +294,8 @@ _Safe int XmlParseXmlDecl(int isGeneralTextEntity, const ENCODING *enc,
 
 _Safe int XmlInitEncoding(INIT_ENCODING *p, const ENCODING **encPtr,
                           const char *name);
-_Safe const ENCODING *XmlGetUtf8InternalEncoding(void);
-_Safe const ENCODING *XmlGetUtf16InternalEncoding(void);
+_Safe const ENCODING *_Nonnull XmlGetUtf8InternalEncoding(void);
+_Safe const ENCODING *_Nonnull XmlGetUtf16InternalEncoding(void);
 _Safe int FASTCALL XmlUtf8Encode(int charNumber, char *buf);
 _Safe int FASTCALL XmlUtf16Encode(int charNumber, unsigned short *buf);
 _Safe int XmlSizeOfUnknownEncoding(void);
@@ -316,8 +316,8 @@ _Safe int XmlParseXmlDeclNS(int isGeneralTextEntity, const ENCODING *enc,
 
 _Safe int XmlInitEncodingNS(INIT_ENCODING *p, const ENCODING **encPtr,
                             const char *name);
-_Safe const ENCODING *XmlGetUtf8InternalEncodingNS(void);
-_Safe const ENCODING *XmlGetUtf16InternalEncodingNS(void);
+_Safe const ENCODING *_Nonnull XmlGetUtf8InternalEncodingNS(void);
+_Safe const ENCODING *_Nonnull XmlGetUtf16InternalEncodingNS(void);
 _Safe ENCODING *XmlInitUnknownEncodingNS(void *mem, const int *table,
                                          CONVERTER convert, void *userData);
 #  ifdef __cplusplus

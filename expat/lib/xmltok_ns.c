@@ -39,12 +39,12 @@
 
 #ifdef XML_TOK_NS_C
 
-_Safe const ENCODING *
+_Safe const ENCODING *_Nonnull
 NS(XmlGetUtf8InternalEncoding)(void) {
   return _Unsafe(&ns(internal_utf8_encoding).enc);
 }
 
-_Safe const ENCODING *
+_Safe const ENCODING *_Nonnull
 NS(XmlGetUtf16InternalEncoding)(void) {
 #  if BYTEORDER == 1234
   return _Unsafe(&ns(internal_little2_encoding).enc);

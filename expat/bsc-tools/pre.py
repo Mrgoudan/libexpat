@@ -374,5 +374,134 @@ rep("""  return (strncmp(s1, s2, s1len) == 0 && s2[s1len] == '\\0') ? XML_TRUE
                         ? XML_TRUE
                         : XML_FALSE);""")
 
+# explicit null contracts on raw parameters and fields (checked at every call site)
+s = re.sub(r'\bconst ENCODING \*enc\b', r'const ENCODING *_Nonnull enc', s)
+s = s.replace('  const ENCODING *m_encoding;', '  const ENCODING *_Nonnull m_encoding;')
+s = s.replace('  const ENCODING *m_internalEncoding;', '  const ENCODING *_Nonnull m_internalEncoding;')
+s = re.sub(r'\bconst char \*\*(endPtr|startPtr)\b', r'const char **_Nonnull \1', s)
+s = re.sub(r'\bconst char \*\*nextPtr\b', r'const char **_Nonnull nextPtr', s)
+# storeEntityValue / appendAttributeValue accept a NULL nextPtr
+s = re.sub(r'(storeEntityValue\([^;{]*?)const char \*\*_Nonnull nextPtr', r'\1const char **_Nullable nextPtr', s, flags=re.S)
+s = re.sub(r'(appendAttributeValue\([^;{]*?)const char \*\*_Nonnull nextPtr', r'\1const char **_Nullable nextPtr', s, flags=re.S)
+s = re.sub(r'\bENTITY \*entity\b', r'ENTITY *_Nonnull entity', s)
+s = re.sub(r'\bPREFIX \*prefix(?=\s*[,)])', r'PREFIX *_Nonnull prefix', s)
+s = re.sub(r'\bconst ATTRIBUTE_ID \*attId(?=\s*[,)])', r'const ATTRIBUTE_ID *_Nullable attId', s)
+s = re.sub(r'\bATTRIBUTE_ID \*attId(?=\s*[,)])', r'ATTRIBUTE_ID *_Nonnull attId', s)
+s = re.sub(r'\bELEMENT_TYPE \*(type|elementType)(?=\s*[,)])', r'ELEMENT_TYPE *_Nonnull \1', s)
+s = re.sub(r'\bBINDING \*\*bindingsPtr\b', r'BINDING **_Nonnull bindingsPtr', s)
+s = re.sub(r'\bKEY (name|s|s2)(?=\s*[,)])', r'KEY _Nonnull \1', s)
+s = re.sub(r'\bconst XML_Char \*(s|context|encodingName)(?=\s*[,)])', r'const XML_Char *_Nonnull \1', s)
+s = re.sub(r'\bconst XML_Char \*value(?=\s*[,)])', r'const XML_Char *_Nullable value', s)
+s = s.replace('handleUnknownEncoding(XML_Parser parser, const XML_Char *_Nonnull encodingName)', 'handleUnknownEncoding(XML_Parser parser, const XML_Char *_Nullable encodingName)')
+s = s.replace('static enum XML_Error handleUnknownEncoding(XML_Parser parser,\n                                            const XML_Char *_Nonnull encodingName);', 'static enum XML_Error handleUnknownEncoding(XML_Parser parser,\n                                            const XML_Char *_Nullable encodingName);')
+s = re.sub(r'\bXML_Char \*(s|publicId)\) \{', r'XML_Char *_Nonnull \1) {', s)
+s = s.replace('static void FASTCALL normalizePublicId(XML_Char *s);', 'static void FASTCALL normalizePublicId(XML_Char *_Nonnull s);')
+
+# TAG_NAME.str is the element name; always set before storeAtts
+rep("""typedef struct {
+  const XML_Char *str;
+  const XML_Char *localPart;""", """typedef struct {
+  const XML_Char *_Nonnull str;
+  const XML_Char *localPart;""")
+rep("""      TAG_NAME name = {NULL, NULL, NULL, 0, 0, 0};
+      name.str = poolStoreString(&parser->m_tempPool, enc, rawName,
+                                 rawName + XmlNameLength(enc, rawName));
+      if (! name.str)
+        return XML_ERROR_NO_MEMORY;""", """      const XML_Char *nameStr = poolStoreString(
+          &parser->m_tempPool, enc, rawName, rawName + XmlNameLength(enc, rawName));
+      if (! nameStr)
+        return XML_ERROR_NO_MEMORY;
+      TAG_NAME name = {nameStr, NULL, NULL, 0, 0, 0};""")
+rep("""  tagNamePtr->str = _Unsafe((XML_Char *)&_Mut *binding->uri);
+  return XML_ERROR_NONE;""", """  XML_Char *bindingUriView = _Unsafe((XML_Char *)&_Mut *binding->uri);
+  if (bindingUriView == NULL)
+    return XML_ERROR_UNEXPECTED_STATE;
+  tagNamePtr->str = bindingUriView;
+  return XML_ERROR_NONE;""")
+# expanded attribute names and bound prefix names are never NULL here (role machine); make it explicit
+rep("""        {
+          const size_t len = xcslen(s) + /*null terminator*/ 1;
+          if (! poolAppendChars(&parser->m_tempPool, s, len))
+            return XML_ERROR_NO_MEMORY;
+        }""", """        if (s == NULL)
+          return XML_ERROR_UNEXPECTED_STATE;
+        {
+          const size_t len = xcslen(s) + /*null terminator*/ 1;
+          if (! poolAppendChars(&parser->m_tempPool, s, len))
+            return XML_ERROR_NO_MEMORY;
+        }""")
+rep("""          s = b->prefix->name;
+          const size_t len = xcslen(s) + /*null terminator*/ 1;
+          if (! poolAppendChars(&parser->m_tempPool, s, len))
+            return XML_ERROR_NO_MEMORY;""", """          s = b->prefix->name;
+          if (s == NULL)
+            return XML_ERROR_UNEXPECTED_STATE;
+          const size_t len = xcslen(s) + /*null terminator*/ 1;
+          if (! poolAppendChars(&parser->m_tempPool, s, len))
+            return XML_ERROR_NO_MEMORY;""")
+# declaration state must be complete before an attribute default is defined
+rep("""      if (dtd->keepProcessing) {
+        if (! defineAttribute(parser->m_declElementType,
+                              parser->m_declAttributeId,""", """      if (dtd->keepProcessing) {
+        if (parser->m_declElementType == NULL
+            || parser->m_declAttributeId == NULL)
+          return XML_ERROR_UNEXPECTED_STATE;
+        if (! defineAttribute(parser->m_declElementType,
+                              parser->m_declAttributeId,""")
+rep("""        attVal = poolStart(&dtd->pool);
+        poolFinish(&dtd->pool);
+        /* ID attributes aren't allowed to have a default */
+        if (! defineAttribute(""", """        attVal = poolStart(&dtd->pool);
+        poolFinish(&dtd->pool);
+        if (parser->m_declElementType == NULL
+            || parser->m_declAttributeId == NULL)
+          return XML_ERROR_UNEXPECTED_STATE;
+        /* ID attributes aren't allowed to have a default */
+        if (! defineAttribute(""")
+
+# hash-table entries always carry a name (set right after insertion)
+rep("""typedef struct {
+  KEY name;
+} NAMED;""", """typedef struct {
+  KEY _Nonnull name;
+} NAMED;""")
+rep("""          KEY const key = table->v[i]->name;
+          unsigned long newHash = hash(parser, key, keylen(key));""", """          KEY const key = table->v[i]->name;
+          if (key == NULL) {
+            FREE(PARSER_OF(table), newV);
+            return NULL;
+          }
+          unsigned long newHash = hash(parser, key, keylen(key));""")
+# pool copies return the (possibly NULL) block start, not the _Nonnull input
+s = s.replace("""  s = pool->start;
+  poolFinish(pool);
+  return s;""", """  const XML_Char *copy = pool->start;
+  poolFinish(pool);
+  return copy;""")
+# getContext / setContext: URI and prefix strings are non-empty by construction
+rep("""    if (! poolAppendChars(
+            &parser->m_tempPool,
+            _Unsafe((const XML_Char *)&_Const *dtd->defaultPrefix.binding->uri),
+            len)) {""", """    const XML_Char *defaultUri
+        = _Unsafe((const XML_Char *)&_Const *dtd->defaultPrefix.binding->uri);
+    if (defaultUri == NULL)
+      return NULL;
+    if (! poolAppendChars(&parser->m_tempPool, defaultUri, len)) {""")
+rep("""    if (! poolAppendChars(&parser->m_tempPool,
+                          _Unsafe((const XML_Char *)&_Const *prefix->binding->uri),
+                          len))
+      return NULL;""", """    const XML_Char *prefixUri
+        = _Unsafe((const XML_Char *)&_Const *prefix->binding->uri);
+    if (prefixUri == NULL)
+      return NULL;
+    if (! poolAppendChars(&parser->m_tempPool, prefixUri, len))
+      return NULL;""")
+rep("""        const XML_Char *const prefixName = poolCopyStringNoFinish(
+            &dtd->pool, poolStart(&parser->m_tempPool));""", """        const XML_Char *const tempName = poolStart(&parser->m_tempPool);
+        if (tempName == NULL)
+          return XML_FALSE;
+        const XML_Char *const prefixName
+            = poolCopyStringNoFinish(&dtd->pool, tempName);""")
+
 open(p, 'w').write(s)
 print('pre ok')

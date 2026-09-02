@@ -232,7 +232,7 @@ typedef char ICHAR;
 typedef const XML_Char *KEY;
 
 typedef struct {
-  KEY name;
+  KEY _Nonnull name;
 } NAMED;
 
 typedef struct {
@@ -243,7 +243,7 @@ typedef struct {
   XML_Parser parser;
 } HASH_TABLE;
 
-_Safe static size_t keylen(KEY s);
+_Safe static size_t keylen(KEY _Nonnull s);
 
 _Safe static void copy_salt_to_sipkey(XML_Parser _Borrow parser, struct sipkey *_Borrow __attribute__((ensure_init)) key);
 
@@ -275,7 +275,7 @@ typedef struct {
 #define EXPAND_SPARE 24
 
 _Safe XML_Parser _Owned _Nullable XMLCALL XML_ParserCreate_MM(
-    const XML_Char *encodingName,
+    const XML_Char *_Nonnull encodingName,
     const XML_Memory_Handling_Suite *_Borrow _Nullable memsuite,
     const XML_Char *nameSep);
 _Safe void XMLCALL XML_ParserFree(XML_Parser _Owned _Nullable parser);
@@ -300,7 +300,7 @@ typedef struct prefix {
 } PREFIX;
 
 typedef struct {
-  const XML_Char *str;
+  const XML_Char *_Nonnull str;
   const XML_Char *localPart;
   const XML_Char *prefix;
   size_t strLen;
@@ -466,7 +466,7 @@ typedef struct open_internal_entity {
   const char *internalEventPtr;
   const char *internalEventEndPtr;
   struct open_internal_entity *next;
-  ENTITY *entity;
+  ENTITY *_Nonnull entity;
   int startTagLevel;
   XML_Bool betweenDecl; /* WFC: PE Between Declarations */
   enum EntityType type;
@@ -507,7 +507,7 @@ typedef struct entity_stats {
 
 typedef _Safe enum XML_Error PTRCALL Processor(XML_Parser _Borrow parser,
                                                const char *start,
-                                         const char *end, const char **endPtr);
+                                         const char *end, const char **_Nonnull endPtr);
 
 static Processor prologProcessor;
 static Processor prologInitProcessor;
@@ -529,77 +529,77 @@ static Processor externalEntityContentProcessor;
 static Processor internalEntityProcessor;
 
 _Safe static enum XML_Error handleUnknownEncoding(XML_Parser _Borrow parser,
-                                            const XML_Char *encodingName);
+                                            const XML_Char *_Nullable encodingName);
 _Safe static enum XML_Error processXmlDecl(XML_Parser _Borrow parser, int isGeneralTextEntity,
                                      const char *s, const char *next);
 _Safe static enum XML_Error initializeEncoding(XML_Parser _Borrow parser);
-_Safe static enum XML_Error doProlog(XML_Parser _Borrow parser, const ENCODING *enc,
+_Safe static enum XML_Error doProlog(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc,
                                const char *s, const char *end, int tok,
-                               const char *next, const char **nextPtr,
+                               const char *next, const char **_Nonnull nextPtr,
                                XML_Bool haveMore, XML_Bool allowClosingDoctype,
                                enum XML_Account account);
-_Safe static enum XML_Error processEntity(XML_Parser _Borrow parser, ENTITY *entity,
+_Safe static enum XML_Error processEntity(XML_Parser _Borrow parser, ENTITY *_Nonnull entity,
                                     XML_Bool betweenDecl, enum EntityType type);
 _Safe static enum XML_Error doContent(XML_Parser _Borrow parser, int startTagLevel,
-                                const ENCODING *enc, const char *start,
-                                const char *end, const char **endPtr,
+                                const ENCODING *_Nonnull enc, const char *start,
+                                const char *end, const char **_Nonnull endPtr,
                                 XML_Bool haveMore, enum XML_Account account);
-_Safe static enum XML_Error doCdataSection(XML_Parser _Borrow parser, const ENCODING *enc,
-                                     const char **startPtr, const char *end,
-                                     const char **nextPtr, XML_Bool haveMore,
+_Safe static enum XML_Error doCdataSection(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc,
+                                     const char **_Nonnull startPtr, const char *end,
+                                     const char **_Nonnull nextPtr, XML_Bool haveMore,
                                      enum XML_Account account);
 #ifdef XML_DTD
-_Safe static enum XML_Error doIgnoreSection(XML_Parser _Borrow parser, const ENCODING *enc,
-                                      const char **startPtr, const char *end,
-                                      const char **nextPtr, XML_Bool haveMore);
+_Safe static enum XML_Error doIgnoreSection(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc,
+                                      const char **_Nonnull startPtr, const char *end,
+                                      const char **_Nonnull nextPtr, XML_Bool haveMore);
 #endif /* XML_DTD */
 
 _Safe static void freeBindings(XML_Parser _Borrow parser, BINDING *bindings);
-_Safe static enum XML_Error storeAtts(XML_Parser _Borrow parser, const ENCODING *enc,
+_Safe static enum XML_Error storeAtts(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc,
                                 const char *attStr, TAG_NAME *_Borrow tagNamePtr,
-                                BINDING **bindingsPtr,
+                                BINDING **_Nonnull bindingsPtr,
                                 enum XML_Account account);
-_Safe static enum XML_Error addBinding(XML_Parser _Borrow parser, PREFIX *prefix,
-                                 const ATTRIBUTE_ID *attId, const XML_Char *uri,
-                                 BINDING **bindingsPtr);
-_Safe static int defineAttribute(ELEMENT_TYPE *type, ATTRIBUTE_ID *attId,
+_Safe static enum XML_Error addBinding(XML_Parser _Borrow parser, PREFIX *_Nonnull prefix,
+                                 const ATTRIBUTE_ID *_Nullable attId, const XML_Char *uri,
+                                 BINDING **_Nonnull bindingsPtr);
+_Safe static int defineAttribute(ELEMENT_TYPE *_Nonnull type, ATTRIBUTE_ID *_Nonnull attId,
                            XML_Bool isCdata, XML_Bool isId,
-                           const XML_Char *value, XML_Parser _Borrow parser);
+                           const XML_Char *_Nullable value, XML_Parser _Borrow parser);
 _Safe static enum XML_Error storeAttributeValue(XML_Parser _Borrow parser,
-                                          const ENCODING *enc, XML_Bool isCdata,
+                                          const ENCODING *_Nonnull enc, XML_Bool isCdata,
                                           const char *ptr, const char *end,
                                           STRING_POOL *_Borrow pool,
                                           enum XML_Account account);
 static enum XML_Error
-appendAttributeValue(XML_Parser _Borrow parser, const ENCODING *enc, XML_Bool isCdata,
+appendAttributeValue(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc, XML_Bool isCdata,
                      const char *ptr, const char *end, STRING_POOL *_Borrow pool,
-                     enum XML_Account account, const char **nextPtr);
-_Safe static ATTRIBUTE_ID *getAttributeId(XML_Parser _Borrow parser, const ENCODING *enc,
+                     enum XML_Account account, const char **_Nullable nextPtr);
+_Safe static ATTRIBUTE_ID *getAttributeId(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc,
                                     const char *start, const char *end);
-_Safe static int setElementTypePrefix(XML_Parser _Borrow parser, ELEMENT_TYPE *elementType);
+_Safe static int setElementTypePrefix(XML_Parser _Borrow parser, ELEMENT_TYPE *_Nonnull elementType);
 #if XML_GE == 1
-_Safe static enum XML_Error storeEntityValue(XML_Parser _Borrow parser, const ENCODING *enc,
+_Safe static enum XML_Error storeEntityValue(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc,
                                        const char *start, const char *end,
                                        enum XML_Account account,
-                                       const char **nextPtr);
+                                       const char **_Nullable nextPtr);
 _Safe static enum XML_Error callStoreEntityValue(XML_Parser _Borrow parser,
-                                           const ENCODING *enc,
+                                           const ENCODING *_Nonnull enc,
                                            const char *start, const char *end,
                                            enum XML_Account account);
 #else
-_Safe static enum XML_Error storeSelfEntityValue(XML_Parser _Borrow parser, ENTITY *entity);
+_Safe static enum XML_Error storeSelfEntityValue(XML_Parser _Borrow parser, ENTITY *_Nonnull entity);
 #endif
-_Safe static int reportProcessingInstruction(XML_Parser _Borrow parser, const ENCODING *enc,
+_Safe static int reportProcessingInstruction(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc,
                                        const char *start, const char *end);
-_Safe static int reportComment(XML_Parser _Borrow parser, const ENCODING *enc,
+_Safe static int reportComment(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc,
                          const char *start, const char *end);
-_Safe static void reportDefault(XML_Parser _Borrow parser, const ENCODING *enc,
+_Safe static void reportDefault(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc,
                           const char *start, const char *end);
 
 _Safe static const XML_Char *getContext(XML_Parser _Borrow parser);
-_Safe static XML_Bool setContext(XML_Parser _Borrow parser, const XML_Char *context);
+_Safe static XML_Bool setContext(XML_Parser _Borrow parser, const XML_Char *_Nonnull context);
 
-_Safe static void FASTCALL normalizePublicId(XML_Char *s);
+_Safe static void FASTCALL normalizePublicId(XML_Char *_Nonnull s);
 
 _Safe static DTD *dtdCreate(XML_Parser _Borrow parser);
 /* do not call if m_parentParser != nullptr */
@@ -609,9 +609,9 @@ _Safe static int dtdCopy(XML_Parser _Borrow oldParser, DTD *_Borrow newDtd, cons
                    XML_Parser _Borrow parser);
 _Safe static int copyEntityTable(XML_Parser _Borrow oldParser, HASH_TABLE *_Borrow newTable,
                            STRING_POOL *_Borrow newPool, const HASH_TABLE *_Borrow oldTable);
-_Safe static NAMED *lookupWithLength(XML_Parser _Borrow parser, HASH_TABLE *_Borrow table, KEY name,
+_Safe static NAMED *lookupWithLength(XML_Parser _Borrow parser, HASH_TABLE *_Borrow table, KEY _Nonnull name,
                                size_t nameLen, size_t createSize);
-_Safe static NAMED *lookup(XML_Parser _Borrow parser, HASH_TABLE *_Borrow table, KEY name,
+_Safe static NAMED *lookup(XML_Parser _Borrow parser, HASH_TABLE *_Borrow table, KEY _Nonnull name,
                      size_t createSize);
 _Safe static void FASTCALL hashTableInit(HASH_TABLE *_Borrow table, XML_Parser rawParser);
 _Safe static void FASTCALL hashTableClear(HASH_TABLE *_Borrow table);
@@ -623,38 +623,38 @@ _Safe static NAMED *FASTCALL hashTableIterNext(HASH_TABLE_ITER *_Borrow iter);
 _Safe static void FASTCALL poolInit(STRING_POOL *_Borrow pool, XML_Parser rawParser);
 _Safe static void FASTCALL poolClear(STRING_POOL *_Borrow pool);
 _Safe static void FASTCALL poolDestroy(STRING_POOL *_Borrow pool);
-_Safe static XML_Char *poolAppend(STRING_POOL *_Borrow pool, const ENCODING *enc,
+_Safe static XML_Char *poolAppend(STRING_POOL *_Borrow pool, const ENCODING *_Nonnull enc,
                             const char *ptr, const char *end);
-_Safe static XML_Char *poolStoreString(STRING_POOL *_Borrow pool, const ENCODING *enc,
+_Safe static XML_Char *poolStoreString(STRING_POOL *_Borrow pool, const ENCODING *_Nonnull enc,
                                  const char *ptr, const char *end);
 _Safe static XML_Bool FASTCALL poolGrow(STRING_POOL *_Borrow pool);
 _Safe static bool FASTCALL poolGrowUntil(STRING_POOL *_Borrow pool, size_t needed);
 _Safe static const XML_Char *FASTCALL poolCopyString(STRING_POOL *_Borrow pool,
-                                               const XML_Char *s);
+                                               const XML_Char *_Nonnull s);
 _Safe static const XML_Char *FASTCALL poolCopyStringNoFinish(STRING_POOL *_Borrow pool,
-                                                       const XML_Char *s);
-_Safe static const XML_Char *poolCopyStringN(STRING_POOL *_Borrow pool, const XML_Char *s,
+                                                       const XML_Char *_Nonnull s);
+_Safe static const XML_Char *poolCopyStringN(STRING_POOL *_Borrow pool, const XML_Char *_Nonnull s,
                                        int n);
 _Safe static const XML_Char *FASTCALL poolAppendString(STRING_POOL *_Borrow pool,
-                                                 const XML_Char *s);
+                                                 const XML_Char *_Nonnull s);
 
 _Safe static int FASTCALL nextScaffoldPart(XML_Parser _Borrow parser);
 _Safe static XML_Content *build_model(XML_Parser _Borrow parser);
-_Safe static ELEMENT_TYPE *getElementType(XML_Parser _Borrow parser, const ENCODING *enc,
+_Safe static ELEMENT_TYPE *getElementType(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc,
                                     const char *ptr, const char *end);
 
-_Safe static XML_Char *_Owned _ArrayElem _Nullable copyString(const XML_Char *s,
+_Safe static XML_Char *_Owned _ArrayElem _Nullable copyString(const XML_Char *_Nonnull s,
                                                         XML_Parser _Borrow parser);
 
 _Safe static struct sipkey generate_hash_secret_salt(void);
 _Safe static XML_Bool startParsing(XML_Parser _Borrow parser);
 
-_Safe static XML_Parser _Owned _Nullable parserCreate(const XML_Char *encodingName,
+_Safe static XML_Parser _Owned _Nullable parserCreate(const XML_Char *_Nonnull encodingName,
                                const XML_Memory_Handling_Suite *_Borrow _Nullable memsuite,
                                const XML_Char *nameSep, DTD *dtd,
                                XML_Parser _Borrow _Nullable parentParser);
 
-_Safe static void parserInit(XML_Parser _Borrow parser, const XML_Char *encodingName);
+_Safe static void parserInit(XML_Parser _Borrow parser, const XML_Char *_Nonnull encodingName);
 
 #if XML_GE == 1
 _Safe static float accountingGetCurrentAmplification(XML_Parser _Borrow rootParser);
@@ -670,11 +670,11 @@ _Safe static XML_Bool accountingDiffTolerated(XML_Parser _Borrow originParser, i
                                         int source_line,
                                         enum XML_Account account);
 
-_Safe static void entityTrackingReportStats(XML_Parser _Borrow parser, ENTITY *entity,
+_Safe static void entityTrackingReportStats(XML_Parser _Borrow parser, ENTITY *_Nonnull entity,
                                       const char *action, int sourceLine);
-_Safe static void entityTrackingOnOpen(XML_Parser _Borrow parser, ENTITY *entity,
+_Safe static void entityTrackingOnOpen(XML_Parser _Borrow parser, ENTITY *_Nonnull entity,
                                  int sourceLine);
-_Safe static void entityTrackingOnClose(XML_Parser _Borrow parser, ENTITY *entity,
+_Safe static void entityTrackingOnClose(XML_Parser _Borrow parser, ENTITY *_Nonnull entity,
                                   int sourceLine);
 #endif /* XML_GE == 1 */
 
@@ -686,7 +686,7 @@ _Safe static unsigned long getDebugLevel(const char *variableName,
 
 _Safe static bool poolAppendChar(STRING_POOL *_Borrow pool, XML_Char c);
 
-_Safe static bool poolAppendChars(STRING_POOL *_Borrow pool, const XML_Char *s, size_t len);
+_Safe static bool poolAppendChars(STRING_POOL *_Borrow pool, const XML_Char *_Nonnull s, size_t len);
 
 _Safe static inline XML_Char *_Nullable
 poolStart(const STRING_POOL *_Borrow pool) {
@@ -723,7 +723,7 @@ poolAppendChar(STRING_POOL *_Borrow pool, XML_Char c) {
 }
 
 _Safe bool
-poolAppendChars(STRING_POOL *_Borrow pool, const XML_Char *s, size_t len) {
+poolAppendChars(STRING_POOL *_Borrow pool, const XML_Char *_Nonnull s, size_t len) {
   // Detect and prevent integer overflow
   if (len > SIZE_MAX / sizeof(XML_Char))
     return false;
@@ -797,9 +797,9 @@ struct XML_ParserStruct {
   XML_AttlistDeclHandler m_attlistDeclHandler;
   XML_EntityDeclHandler m_entityDeclHandler;
   XML_XmlDeclHandler m_xmlDeclHandler;
-  const ENCODING *m_encoding;
+  const ENCODING *_Nonnull m_encoding;
   INIT_ENCODING m_initEncoding;
-  const ENCODING *m_internalEncoding;
+  const ENCODING *_Nonnull m_internalEncoding;
   XML_Char *_Owned _ArrayElem _Nullable m_protocolEncodingName;
   XML_Bool m_ns;
   XML_Bool m_ns_triplets;
@@ -1139,12 +1139,12 @@ expat_realloc(XML_Parser _Borrow parser, void *ptr, size_t size, int sourceLine)
 #endif // XML_GE == 1
 
 _Safe XML_Parser _Owned _Nullable XMLCALL
-XML_ParserCreate(const XML_Char *encodingName) {
+XML_ParserCreate(const XML_Char *_Nonnull encodingName) {
   return XML_ParserCreate_MM(encodingName, nullptr, nullptr);
 }
 
 _Safe XML_Parser _Owned _Nullable XMLCALL
-XML_ParserCreateNS(const XML_Char *encodingName, XML_Char nsSep) {
+XML_ParserCreateNS(const XML_Char *_Nonnull encodingName, XML_Char nsSep) {
   XML_Char tmp[2] = {nsSep, 0};
   return XML_ParserCreate_MM(encodingName, nullptr, tmp);
 }
@@ -1290,7 +1290,7 @@ callUnknownEncodingConvert(void *data, const char *p) {
 
 _Safe static enum XML_Error
 callProcessor(XML_Parser _Borrow parser, const char *start, const char *end,
-              const char **endPtr) {
+              const char **_Nonnull endPtr) {
   const size_t have_now = (size_t)EXPAT_SAFE_PTR_DIFF(end, start);
 
   if (parser->m_reparseDeferralEnabled
@@ -1371,14 +1371,14 @@ startParsing(XML_Parser _Borrow parser) {
 }
 
 _Safe XML_Parser _Owned _Nullable XMLCALL
-XML_ParserCreate_MM(const XML_Char *encodingName,
+XML_ParserCreate_MM(const XML_Char *_Nonnull encodingName,
                     const XML_Memory_Handling_Suite *_Borrow _Nullable memsuite,
                     const XML_Char *nameSep) {
   return parserCreate(encodingName, memsuite, nameSep, nullptr, nullptr);
 }
 
 _Safe static XML_Parser _Owned _Nullable
-parserCreate(const XML_Char *encodingName,
+parserCreate(const XML_Char *_Nonnull encodingName,
              const XML_Memory_Handling_Suite *_Borrow _Nullable memsuite, const XML_Char *nameSep,
              DTD *dtd, XML_Parser _Borrow _Nullable parentParser) {
   XML_Parser parser = nullptr;
@@ -1585,7 +1585,7 @@ parserCreate(const XML_Char *encodingName,
 }
 
 _Safe static void
-parserInit(XML_Parser _Borrow parser, const XML_Char *encodingName) {
+parserInit(XML_Parser _Borrow parser, const XML_Char *_Nonnull encodingName) {
   parser->m_processor = prologInitProcessor;
   XmlPrologStateInit(&_Mut parser->m_prologState);
   if (encodingName != nullptr) {
@@ -1701,7 +1701,7 @@ moveEntityList(OPEN_INTERNAL_ENTITY **dst, OPEN_INTERNAL_ENTITY **src) {
 }
 
 _Safe XML_Bool XMLCALL
-XML_ParserReset(XML_Parser _Borrow _Nullable parser, const XML_Char *encodingName) {
+XML_ParserReset(XML_Parser _Borrow _Nullable parser, const XML_Char *_Nonnull encodingName) {
   TAG *tStk;
 
   if ((parser == nullptr) || isCalledFromInsideHandler(parser))
@@ -1760,7 +1760,7 @@ parserBusy(XML_Parser _Borrow parser) {
 }
 
 _Safe enum XML_Status XMLCALL
-XML_SetEncoding(XML_Parser _Borrow _Nullable parser, const XML_Char *encodingName) {
+XML_SetEncoding(XML_Parser _Borrow _Nullable parser, const XML_Char *_Nonnull encodingName) {
   if (parser == nullptr)
     return XML_STATUS_ERROR;
   /* Block after XML_Parse()/XML_ParseBuffer() has been called.
@@ -1786,8 +1786,8 @@ XML_SetEncoding(XML_Parser _Borrow _Nullable parser, const XML_Char *encodingNam
 }
 
 _Safe XML_Parser _Owned _Nullable XMLCALL
-XML_ExternalEntityParserCreate(XML_Parser _Borrow _Nullable oldParser, const XML_Char *context,
-                               const XML_Char *encodingName) {
+XML_ExternalEntityParserCreate(XML_Parser _Borrow _Nullable oldParser, const XML_Char *_Nonnull context,
+                               const XML_Char *_Nonnull encodingName) {
   DTD *newDtd = nullptr;
   DTD *oldDtd;
   XML_StartElementHandler oldStartElementHandler;
@@ -3287,7 +3287,7 @@ storeRawNames(XML_Parser _Borrow parser) {
 
 _Safe static enum XML_Error PTRCALL
 contentProcessor(XML_Parser _Borrow parser, const char *start, const char *end,
-                 const char **endPtr) {
+                 const char **_Nonnull endPtr) {
   __auto_type bsc_h14 = parser->m_encoding;
   __auto_type bsc_h15 = parser->m_parsingStatus.finalBuffer;
   enum XML_Error result = doContent(
@@ -3303,7 +3303,7 @@ contentProcessor(XML_Parser _Borrow parser, const char *start, const char *end,
 
 _Safe static enum XML_Error PTRCALL
 externalEntityInitProcessor(XML_Parser _Borrow parser, const char *start,
-                            const char *end, const char **endPtr) {
+                            const char *end, const char **_Nonnull endPtr) {
   enum XML_Error result = initializeEncoding(parser);
   if (result != XML_ERROR_NONE)
     return result;
@@ -3313,7 +3313,7 @@ externalEntityInitProcessor(XML_Parser _Borrow parser, const char *start,
 
 _Safe static enum XML_Error PTRCALL
 externalEntityInitProcessor2(XML_Parser _Borrow parser, const char *start,
-                             const char *end, const char **endPtr) {
+                             const char *end, const char **_Nonnull endPtr) {
   const char *next = start; /* XmlContentTok doesn't always set the last arg */
   int tok = XmlContentTok(parser->m_encoding, start, end, _Unsafe(&next));
   switch (tok) {
@@ -3358,7 +3358,7 @@ externalEntityInitProcessor2(XML_Parser _Borrow parser, const char *start,
 
 _Safe static enum XML_Error PTRCALL
 externalEntityInitProcessor3(XML_Parser _Borrow parser, const char *start,
-                             const char *end, const char **endPtr) {
+                             const char *end, const char **_Nonnull endPtr) {
   int tok;
   const char *next = start; /* XmlContentTok doesn't always set the last arg */
   parser->m_eventPtr = start;
@@ -3410,7 +3410,7 @@ externalEntityInitProcessor3(XML_Parser _Borrow parser, const char *start,
 
 _Safe static enum XML_Error PTRCALL
 externalEntityContentProcessor(XML_Parser _Borrow parser, const char *start,
-                               const char *end, const char **endPtr) {
+                               const char *end, const char **_Nonnull endPtr) {
   __auto_type bsc_h16 = parser->m_encoding;
   __auto_type bsc_h17 = parser->m_parsingStatus.finalBuffer;
   enum XML_Error result
@@ -3425,8 +3425,8 @@ externalEntityContentProcessor(XML_Parser _Borrow parser, const char *start,
 }
 
 _Safe static enum XML_Error
-doContent(XML_Parser _Borrow parser, int startTagLevel, const ENCODING *enc,
-          const char *s, const char *end, const char **nextPtr,
+doContent(XML_Parser _Borrow parser, int startTagLevel, const ENCODING *_Nonnull enc,
+          const char *s, const char *end, const char **_Nonnull nextPtr,
           XML_Bool haveMore, enum XML_Account account) {
   /* save one level of indirection */
   DTD *dtdRaw = parser->m_dtd;
@@ -3512,7 +3512,7 @@ doContent(XML_Parser _Borrow parser, int startTagLevel, const ENCODING *enc,
       return XML_ERROR_PARTIAL_CHAR;
     case XML_TOK_ENTITY_REF: {
       const XML_Char *name;
-      ENTITY *entity;
+      ENTITY *_Nonnull entity;
       XML_Char ch = (XML_Char)XmlPredefinedEntityName(
           enc, s + _Unsafe(enc->minBytesPerChar), next - _Unsafe(enc->minBytesPerChar));
       if (ch) {
@@ -3670,11 +3670,11 @@ doContent(XML_Parser _Borrow parser, int startTagLevel, const ENCODING *enc,
       enum XML_Error result;
       BINDING *bindings = nullptr;
       XML_Bool noElmHandlers = XML_TRUE;
-      TAG_NAME name = {nullptr, nullptr, nullptr, 0, 0, 0};
-      name.str = poolStoreString(&_Mut parser->m_tempPool, enc, rawName,
-                                 rawName + XmlNameLength(enc, rawName));
-      if (! name.str)
+      const XML_Char *nameStr = poolStoreString(
+          &_Mut parser->m_tempPool, enc, rawName, rawName + XmlNameLength(enc, rawName));
+      if (! nameStr)
         return XML_ERROR_NO_MEMORY;
+      TAG_NAME name = {nameStr, nullptr, nullptr, 0, 0, 0};
       poolFinish(&_Mut parser->m_tempPool);
       result = storeAtts(parser, enc, s, &_Mut name, _Unsafe(_Unsafe(&bindings)),
                          XML_ACCOUNT_NONE /* token spans whole start tag */);
@@ -3983,8 +3983,8 @@ freeBindings(XML_Parser _Borrow parser, BINDING *bindings) {
    - generate namespace aware element name (URI, prefix)
 */
 _Safe static enum XML_Error
-storeAtts(XML_Parser _Borrow parser, const ENCODING *enc, const char *attStr,
-          TAG_NAME *_Borrow tagNamePtr, BINDING **bindingsPtr,
+storeAtts(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc, const char *attStr,
+          TAG_NAME *_Borrow tagNamePtr, BINDING **_Nonnull bindingsPtr,
           enum XML_Account account) {
   DTD *dtdRaw = parser->m_dtd;
   if (dtdRaw == nullptr)
@@ -4337,6 +4337,8 @@ storeAtts(XML_Parser _Borrow parser, const ENCODING *enc, const char *attStr,
 
         _Unsafe sip24_update(_Unsafe(&sip_state), s, keylen(s) * sizeof(XML_Char));
 
+        if (s == nullptr)
+          return XML_ERROR_UNEXPECTED_STATE;
         {
           const size_t len = _Unsafe(xcslen(s)) + /*null terminator*/ 1;
           if (! poolAppendChars(&_Mut parser->m_tempPool, s, len))
@@ -4371,6 +4373,8 @@ storeAtts(XML_Parser _Borrow parser, const ENCODING *enc, const char *attStr,
         if (parser->m_ns_triplets) { /* append namespace separator and prefix */
           _Unsafe parser->m_tempPool.ptr[-1] = parser->m_namespaceSeparator;
           _Unsafe s = b->prefix->name;
+          if (s == nullptr)
+            return XML_ERROR_UNEXPECTED_STATE;
           const size_t len = _Unsafe(xcslen(s)) + /*null terminator*/ 1;
           if (! poolAppendChars(&_Mut parser->m_tempPool, s, len))
             return XML_ERROR_NO_MEMORY;
@@ -4466,7 +4470,10 @@ storeAtts(XML_Parser _Borrow parser, const ENCODING *enc, const char *attStr,
     _Unsafe *uri = parser->m_namespaceSeparator; /* replace null terminator */
     _Unsafe memcpy(uri + 1, binding->prefix->name, prefixLen * sizeof(XML_Char));
   }
-  tagNamePtr->str = _Unsafe((XML_Char *)&_Mut *binding->uri);
+  XML_Char *bindingUriView = _Unsafe((XML_Char *)&_Mut *binding->uri);
+  if (bindingUriView == nullptr)
+    return XML_ERROR_UNEXPECTED_STATE;
+  tagNamePtr->str = bindingUriView;
   return XML_ERROR_NONE;
 }
 
@@ -4585,8 +4592,8 @@ is_rfc3986_uri_char(XML_Char candidate) {
    Therefore one must keep track of the old value outside of addBinding().
 */
 _Safe static enum XML_Error
-addBinding(XML_Parser _Borrow parser, PREFIX *prefix, const ATTRIBUTE_ID *attId,
-           const XML_Char *uri, BINDING **bindingsPtr) {
+addBinding(XML_Parser _Borrow parser, PREFIX *_Nonnull prefix, const ATTRIBUTE_ID *_Nullable attId,
+           const XML_Char *uri, BINDING **_Nonnull bindingsPtr) {
   // "http://www.w3.org/XML/1998/namespace"
   static const XML_Char xmlNamespace[]
       = {ASCII_h,      ASCII_t,     ASCII_t,     ASCII_p,      ASCII_COLON,
@@ -4748,7 +4755,7 @@ addBinding(XML_Parser _Borrow parser, PREFIX *prefix, const ATTRIBUTE_ID *attId,
 */
 _Safe static enum XML_Error PTRCALL
 cdataSectionProcessor(XML_Parser _Borrow parser, const char *start, const char *end,
-                      const char **endPtr) {
+                      const char **_Nonnull endPtr) {
   __auto_type bsc_h18 = parser->m_encoding;
   __auto_type bsc_h19 = parser->m_parsingStatus.finalBuffer;
   enum XML_Error result = doCdataSection(
@@ -4772,8 +4779,8 @@ cdataSectionProcessor(XML_Parser _Borrow parser, const char *start, const char *
    the section is not yet closed.
 */
 _Safe static enum XML_Error
-doCdataSection(XML_Parser _Borrow parser, const ENCODING *enc, const char **startPtr,
-               const char *end, const char **nextPtr, XML_Bool haveMore,
+doCdataSection(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc, const char **_Nonnull startPtr,
+               const char *end, const char **_Nonnull nextPtr, XML_Bool haveMore,
                enum XML_Account account) {
   const char *s = _Unsafe((*startPtr));
   const char **eventPP;
@@ -4916,7 +4923,7 @@ doCdataSection(XML_Parser _Borrow parser, const ENCODING *enc, const char **star
 */
 _Safe static enum XML_Error PTRCALL
 ignoreSectionProcessor(XML_Parser _Borrow parser, const char *start, const char *end,
-                       const char **endPtr) {
+                       const char **_Nonnull endPtr) {
   __auto_type bsc_h20 = parser->m_encoding;
   __auto_type bsc_h21 = parser->m_parsingStatus.finalBuffer;
   enum XML_Error result
@@ -4935,8 +4942,8 @@ ignoreSectionProcessor(XML_Parser _Borrow parser, const char *start, const char 
    if the section is not yet closed.
 */
 _Safe static enum XML_Error
-doIgnoreSection(XML_Parser _Borrow parser, const ENCODING *enc, const char **startPtr,
-                const char *end, const char **nextPtr, XML_Bool haveMore) {
+doIgnoreSection(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc, const char **_Nonnull startPtr,
+                const char *end, const char **_Nonnull nextPtr, XML_Bool haveMore) {
   const char *next = _Unsafe((*startPtr)); /* in case of XML_TOK_NONE or XML_TOK_PARTIAL */
   int tok;
   const char *s = _Unsafe((*startPtr));
@@ -5148,7 +5155,7 @@ processXmlDecl(XML_Parser _Borrow parser, int isGeneralTextEntity, const char *s
 }
 
 _Safe static enum XML_Error
-handleUnknownEncoding(XML_Parser _Borrow parser, const XML_Char *encodingName) {
+handleUnknownEncoding(XML_Parser _Borrow parser, const XML_Char *_Nullable encodingName) {
   if (parser->m_unknownEncodingHandler) {
     XML_Encoding info;
     int i;
@@ -5197,7 +5204,7 @@ handleUnknownEncoding(XML_Parser _Borrow parser, const XML_Char *encodingName) {
 
 _Safe static enum XML_Error PTRCALL
 prologInitProcessor(XML_Parser _Borrow parser, const char *s, const char *end,
-                    const char **nextPtr) {
+                    const char **_Nonnull nextPtr) {
   enum XML_Error result = initializeEncoding(parser);
   if (result != XML_ERROR_NONE)
     return result;
@@ -5209,7 +5216,7 @@ prologInitProcessor(XML_Parser _Borrow parser, const char *s, const char *end,
 
 _Safe static enum XML_Error PTRCALL
 externalParEntInitProcessor(XML_Parser _Borrow parser, const char *s, const char *end,
-                            const char **nextPtr) {
+                            const char **_Nonnull nextPtr) {
   enum XML_Error result = initializeEncoding(parser);
   if (result != XML_ERROR_NONE)
     return result;
@@ -5229,7 +5236,7 @@ externalParEntInitProcessor(XML_Parser _Borrow parser, const char *s, const char
 
 _Safe static enum XML_Error PTRCALL
 entityValueInitProcessor(XML_Parser _Borrow parser, const char *s, const char *end,
-                         const char **nextPtr) {
+                         const char **_Nonnull nextPtr) {
   int tok;
   const char *start = s;
   const char *next = start;
@@ -5314,7 +5321,7 @@ entityValueInitProcessor(XML_Parser _Borrow parser, const char *s, const char *e
 
 _Safe static enum XML_Error PTRCALL
 externalParEntProcessor(XML_Parser _Borrow parser, const char *s, const char *end,
-                        const char **nextPtr) {
+                        const char **_Nonnull nextPtr) {
   const char *next = s;
   int tok;
 
@@ -5362,10 +5369,10 @@ externalParEntProcessor(XML_Parser _Borrow parser, const char *s, const char *en
 
 _Safe static enum XML_Error PTRCALL
 entityValueProcessor(XML_Parser _Borrow parser, const char *s, const char *end,
-                     const char **nextPtr) {
+                     const char **_Nonnull nextPtr) {
   const char *start = s;
   const char *next = s;
-  const ENCODING *enc = parser->m_encoding;
+  const ENCODING *_Nonnull enc = parser->m_encoding;
   int tok;
 
   for (;;) {
@@ -5409,7 +5416,7 @@ entityValueProcessor(XML_Parser _Borrow parser, const char *s, const char *end,
 
 _Safe static enum XML_Error PTRCALL
 prologProcessor(XML_Parser _Borrow parser, const char *s, const char *end,
-                const char **nextPtr) {
+                const char **_Nonnull nextPtr) {
   const char *next = s;
   int tok = XmlPrologTok(parser->m_encoding, s, end, _Unsafe(&next));
   __auto_type bsc_h26 = parser->m_encoding;
@@ -5420,8 +5427,8 @@ prologProcessor(XML_Parser _Borrow parser, const char *s, const char *end,
 }
 
 _Safe static enum XML_Error
-doProlog(XML_Parser _Borrow parser, const ENCODING *enc, const char *s, const char *end,
-         int tok, const char *next, const char **nextPtr, XML_Bool haveMore,
+doProlog(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc, const char *s, const char *end,
+         int tok, const char *next, const char **_Nonnull nextPtr, XML_Bool haveMore,
          XML_Bool allowClosingDoctype, enum XML_Account account) {
 #ifdef XML_DTD
   static const XML_Char externalSubsetName[] = {ASCII_HASH, '\0'};
@@ -5646,8 +5653,8 @@ doProlog(XML_Parser _Borrow parser, const ENCODING *enc, const char *s, const ch
         dtd->hasParamEntityRefs = XML_TRUE;
         if (parser->m_paramEntityParsing
             && parser->m_externalEntityRefHandler) {
-          ENTITY *entity = _Unsafe(((ENTITY *)lookup(parser, &_Mut dtd->paramEntities,
-                                            externalSubsetName, sizeof(ENTITY))));
+          _Unsafe ENTITY *_Nonnull entity = (ENTITY *)lookup(parser, &_Mut dtd->paramEntities,
+                                            externalSubsetName, sizeof(ENTITY));
           if (! entity) {
             /* The external subset name "#" will have already been
              * inserted into the hash table at the start of the
@@ -5703,8 +5710,8 @@ doProlog(XML_Parser _Borrow parser, const ENCODING *enc, const char *s, const ch
         dtd->hasParamEntityRefs = XML_TRUE;
         if (parser->m_paramEntityParsing
             && parser->m_externalEntityRefHandler) {
-          ENTITY *entity = _Unsafe(((ENTITY *)lookup(parser, &_Mut dtd->paramEntities,
-                                            externalSubsetName, sizeof(ENTITY))));
+          _Unsafe ENTITY *_Nonnull entity = (ENTITY *)lookup(parser, &_Mut dtd->paramEntities,
+                                            externalSubsetName, sizeof(ENTITY));
           if (! entity)
             return XML_ERROR_NO_MEMORY;
           _Unsafe entity->base = parser->m_curBase;
@@ -5800,6 +5807,9 @@ doProlog(XML_Parser _Borrow parser, const ENCODING *enc, const char *s, const ch
     case XML_ROLE_IMPLIED_ATTRIBUTE_VALUE:
     case XML_ROLE_REQUIRED_ATTRIBUTE_VALUE:
       if (dtd->keepProcessing) {
+        if (parser->m_declElementType == nullptr
+            || parser->m_declAttributeId == nullptr)
+          return XML_ERROR_UNEXPECTED_STATE;
         if (! defineAttribute(parser->m_declElementType,
                               parser->m_declAttributeId,
                               parser->m_declAttributeIsCdata,
@@ -5841,6 +5851,9 @@ doProlog(XML_Parser _Borrow parser, const ENCODING *enc, const char *s, const ch
           return result;
         attVal = poolStart(&_Mut dtd->pool);
         poolFinish(&_Mut dtd->pool);
+        if (parser->m_declElementType == nullptr
+            || parser->m_declAttributeId == nullptr)
+          return XML_ERROR_UNEXPECTED_STATE;
         /* ID attributes aren't allowed to have a default */
         if (! defineAttribute(
                 parser->m_declElementType, parser->m_declAttributeId,
@@ -6273,7 +6286,7 @@ doProlog(XML_Parser _Borrow parser, const ENCODING *enc, const char *s, const ch
         dtd->keepProcessing = dtd->standalone;
       else {
         const XML_Char *name;
-        ENTITY *entity;
+        ENTITY *_Nonnull entity;
         name = poolStoreString(&_Mut dtd->pool, enc, s + _Unsafe(enc->minBytesPerChar),
                                next - _Unsafe(enc->minBytesPerChar));
         if (! name)
@@ -6563,7 +6576,7 @@ doProlog(XML_Parser _Borrow parser, const ENCODING *enc, const char *s, const ch
 
 _Safe static enum XML_Error PTRCALL
 epilogProcessor(XML_Parser _Borrow parser, const char *s, const char *end,
-                const char **nextPtr) {
+                const char **_Nonnull nextPtr) {
   parser->m_processor = epilogProcessor;
   parser->m_eventPtr = s;
   for (;;) {
@@ -6644,7 +6657,7 @@ epilogProcessor(XML_Parser _Borrow parser, const char *s, const char *end,
 }
 
 _Safe static enum XML_Error
-processEntity(XML_Parser _Borrow parser, ENTITY *entity, XML_Bool betweenDecl,
+processEntity(XML_Parser _Borrow parser, ENTITY *_Nonnull entity, XML_Bool betweenDecl,
               enum EntityType type) {
   OPEN_INTERNAL_ENTITY *openEntity, **openEntityList;
   OPEN_INTERNAL_ENTITY **const freeEntityList = _Unsafe(&parser->m_freeEntities);
@@ -6704,11 +6717,11 @@ processEntity(XML_Parser _Borrow parser, ENTITY *entity, XML_Bool betweenDecl,
 
 _Safe static enum XML_Error PTRCALL
 internalEntityProcessor(XML_Parser _Borrow parser, const char *s, const char *end,
-                        const char **nextPtr) {
+                        const char **_Nonnull nextPtr) {
   UNUSED_P(s);
   UNUSED_P(end);
   UNUSED_P(nextPtr);
-  ENTITY *entity;
+  ENTITY *_Nonnull entity;
   const char *textStart, *textEnd;
   const char *next;
   enum XML_Error result;
@@ -6788,7 +6801,7 @@ internalEntityProcessor(XML_Parser _Borrow parser, const char *s, const char *en
 
 _Safe static enum XML_Error PTRCALL
 errorProcessor(XML_Parser _Borrow parser, const char *s, const char *end,
-               const char **nextPtr) {
+               const char **_Nonnull nextPtr) {
   UNUSED_P(s);
   UNUSED_P(end);
   UNUSED_P(nextPtr);
@@ -6796,7 +6809,7 @@ errorProcessor(XML_Parser _Borrow parser, const char *s, const char *end,
 }
 
 _Safe static enum XML_Error
-storeAttributeValue(XML_Parser _Borrow parser, const ENCODING *enc, XML_Bool isCdata,
+storeAttributeValue(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc, XML_Bool isCdata,
                     const char *ptr, const char *end, STRING_POOL *_Borrow pool,
                     enum XML_Account account) {
   const char *next = ptr;
@@ -6875,9 +6888,9 @@ storeAttributeValue(XML_Parser _Borrow parser, const ENCODING *enc, XML_Bool isC
 }
 
 _Safe static enum XML_Error
-appendAttributeValue(XML_Parser _Borrow parser, const ENCODING *enc, XML_Bool isCdata,
+appendAttributeValue(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc, XML_Bool isCdata,
                      const char *ptr, const char *end, STRING_POOL *_Borrow pool,
-                     enum XML_Account account, const char **nextPtr) {
+                     enum XML_Account account, const char **_Nullable nextPtr) {
   DTD *dtdRaw = parser->m_dtd;
   if (dtdRaw == nullptr)
     return XML_ERROR_UNEXPECTED_STATE;
@@ -6951,7 +6964,7 @@ appendAttributeValue(XML_Parser _Borrow parser, const ENCODING *enc, XML_Bool is
       break;
     case XML_TOK_ENTITY_REF: {
       const XML_Char *name;
-      ENTITY *entity;
+      ENTITY *_Nonnull entity;
       bool checkEntityDecl;
       XML_Char ch = (XML_Char)XmlPredefinedEntityName(
           enc, ptr + _Unsafe(enc->minBytesPerChar), next - _Unsafe(enc->minBytesPerChar));
@@ -7073,9 +7086,9 @@ appendAttributeValue(XML_Parser _Borrow parser, const ENCODING *enc, XML_Bool is
 
 #if XML_GE == 1
 _Safe static enum XML_Error
-storeEntityValue(XML_Parser _Borrow parser, const ENCODING *enc,
+storeEntityValue(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc,
                  const char *entityTextPtr, const char *entityTextEnd,
-                 enum XML_Account account, const char **nextPtr) {
+                 enum XML_Account account, const char **_Nullable nextPtr) {
   DTD *dtdRaw = parser->m_dtd;
   if (dtdRaw == nullptr)
     return XML_ERROR_UNEXPECTED_STATE;
@@ -7121,7 +7134,7 @@ storeEntityValue(XML_Parser _Borrow parser, const ENCODING *enc,
 #  ifdef XML_DTD
       if (parser->m_isParamEntity || enc != parser->m_encoding) {
         const XML_Char *name;
-        ENTITY *entity;
+        ENTITY *_Nonnull entity;
         name = poolStoreString(&_Mut parser->m_tempPool, enc,
                                entityTextPtr + _Unsafe(enc->minBytesPerChar),
                                next - _Unsafe(enc->minBytesPerChar));
@@ -7265,7 +7278,7 @@ endEntityValue:
 }
 
 _Safe static enum XML_Error
-callStoreEntityValue(XML_Parser _Borrow parser, const ENCODING *enc,
+callStoreEntityValue(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc,
                      const char *entityTextPtr, const char *entityTextEnd,
                      enum XML_Account account) {
   const char *next = entityTextPtr;
@@ -7339,7 +7352,7 @@ callStoreEntityValue(XML_Parser _Borrow parser, const ENCODING *enc,
 #else /* XML_GE == 0 */
 
 _Safe static enum XML_Error
-storeSelfEntityValue(XML_Parser _Borrow parser, ENTITY *entity) {
+storeSelfEntityValue(XML_Parser _Borrow parser, ENTITY *_Nonnull entity) {
   // This will store "&amp;entity123;" in entity->textPtr
   // to end up as "&entity123;" in the handler.
   const char *const entity_start = "&amp;";
@@ -7368,7 +7381,7 @@ storeSelfEntityValue(XML_Parser _Borrow parser, ENTITY *entity) {
 #endif /* XML_GE == 0 */
 
 _Safe static void FASTCALL
-normalizeLines(XML_Char *s) {
+normalizeLines(XML_Char *_Nonnull s) {
   XML_Char *p;
   _Unsafe for (;; s++) {
     if (*s == XML_T('\0'))
@@ -7389,7 +7402,7 @@ normalizeLines(XML_Char *s) {
 }
 
 _Safe static int
-reportProcessingInstruction(XML_Parser _Borrow parser, const ENCODING *enc,
+reportProcessingInstruction(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc,
                             const char *start, const char *end) {
   const XML_Char *target;
   XML_Char *data;
@@ -7418,7 +7431,7 @@ reportProcessingInstruction(XML_Parser _Borrow parser, const ENCODING *enc,
 }
 
 _Safe static int
-reportComment(XML_Parser _Borrow parser, const ENCODING *enc, const char *start,
+reportComment(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc, const char *start,
               const char *end) {
   XML_Char *data;
   if (! parser->m_commentHandler) {
@@ -7440,7 +7453,7 @@ reportComment(XML_Parser _Borrow parser, const ENCODING *enc, const char *start,
 }
 
 _Safe static void
-reportDefault(XML_Parser _Borrow parser, const ENCODING *enc, const char *s,
+reportDefault(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc, const char *s,
               const char *end) {
   if (MUST_CONVERT(enc, s)) {
     enum XML_Convert_Result convert_res;
@@ -7492,8 +7505,8 @@ reportDefault(XML_Parser _Borrow parser, const ENCODING *enc, const char *s,
 }
 
 _Safe static int
-defineAttribute(ELEMENT_TYPE *type, ATTRIBUTE_ID *attId, XML_Bool isCdata,
-                XML_Bool isId, const XML_Char *value, XML_Parser _Borrow parser) {
+defineAttribute(ELEMENT_TYPE *_Nonnull type, ATTRIBUTE_ID *_Nonnull attId, XML_Bool isCdata,
+                XML_Bool isId, const XML_Char *_Nullable value, XML_Parser _Borrow parser) {
   DEFAULT_ATTRIBUTE *att;
   if (value || isId) {
     /* The handling of default attributes gets messed up if we have
@@ -7559,7 +7572,7 @@ defineAttribute(ELEMENT_TYPE *type, ATTRIBUTE_ID *attId, XML_Bool isCdata,
 }
 
 _Safe static int
-setElementTypePrefix(XML_Parser _Borrow parser, ELEMENT_TYPE *elementType) {
+setElementTypePrefix(XML_Parser _Borrow parser, ELEMENT_TYPE *_Nonnull elementType) {
   DTD *dtdRaw = parser->m_dtd;
   if (dtdRaw == nullptr)
     return 0;
@@ -7591,7 +7604,7 @@ setElementTypePrefix(XML_Parser _Borrow parser, ELEMENT_TYPE *elementType) {
 }
 
 _Safe static ATTRIBUTE_ID *
-getAttributeId(XML_Parser _Borrow parser, const ENCODING *enc, const char *start,
+getAttributeId(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc, const char *start,
                const char *end) {
   DTD *dtdRaw = parser->m_dtd;
   if (dtdRaw == nullptr)
@@ -7672,10 +7685,11 @@ getContext(XML_Parser _Borrow parser) {
     size_t len = _Unsafe((dtd->defaultPrefix.binding->uriLen));
     if (parser->m_namespaceSeparator)
       len--;
-    if (! poolAppendChars(
-            &_Mut parser->m_tempPool,
-            _Unsafe((const XML_Char *)&_Const *dtd->defaultPrefix.binding->uri),
-            len)) {
+    const XML_Char *defaultUri
+        = _Unsafe((const XML_Char *)&_Const *dtd->defaultPrefix.binding->uri);
+    if (defaultUri == nullptr)
+      return nullptr;
+    if (! poolAppendChars(&_Mut parser->m_tempPool, defaultUri, len)) {
       /* Because of memory caching, I don't believe this line can be
        * executed.
        *
@@ -7724,9 +7738,11 @@ getContext(XML_Parser _Borrow parser) {
     size_t len = _Unsafe((prefix->binding->uriLen));
     if (parser->m_namespaceSeparator)
       len--;
-    if (! poolAppendChars(&_Mut parser->m_tempPool,
-                          _Unsafe((const XML_Char *)&_Const *prefix->binding->uri),
-                          len))
+    const XML_Char *prefixUri
+        = _Unsafe((const XML_Char *)&_Const *prefix->binding->uri);
+    if (prefixUri == nullptr)
+      return nullptr;
+    if (! poolAppendChars(&_Mut parser->m_tempPool, prefixUri, len))
       return nullptr;
     needSep = XML_TRUE;
   }
@@ -7751,7 +7767,7 @@ getContext(XML_Parser _Borrow parser) {
 }
 
 _Safe static XML_Bool
-setContext(XML_Parser _Borrow parser, const XML_Char *context) {
+setContext(XML_Parser _Borrow parser, const XML_Char *_Nonnull context) {
   if (context == nullptr) {
     return XML_FALSE;
   }
@@ -7782,8 +7798,11 @@ setContext(XML_Parser _Borrow parser, const XML_Char *context) {
       else {
         if (! poolAppendChar(&_Mut parser->m_tempPool, XML_T('\0')))
           return XML_FALSE;
-        const XML_Char *const prefixName = poolCopyStringNoFinish(
-            &_Mut dtd->pool, poolStart(&_Mut parser->m_tempPool));
+        const XML_Char *const tempName = poolStart(&_Mut parser->m_tempPool);
+        if (tempName == nullptr)
+          return XML_FALSE;
+        const XML_Char *const prefixName
+            = poolCopyStringNoFinish(&_Mut dtd->pool, tempName);
         if (! prefixName) {
           return XML_FALSE;
         }
@@ -7828,7 +7847,7 @@ setContext(XML_Parser _Borrow parser, const XML_Char *context) {
 }
 
 _Safe static void FASTCALL
-normalizePublicId(XML_Char *publicId) {
+normalizePublicId(XML_Char *_Nonnull publicId) {
   XML_Char *p = publicId;
   XML_Char *s;
   _Unsafe for (s = publicId; *s; s++) {
@@ -7843,7 +7862,7 @@ normalizePublicId(XML_Char *publicId) {
       *p++ = *s;
     }
   }
-  if (_Unsafe((p != publicId && p[-1] == 0x20)))
+  if (p != publicId && p[-1] == 0x20)
     _Unsafe --p;
   _Unsafe *p = XML_T('\0');
 }
@@ -8175,7 +8194,7 @@ copyEntityTable(XML_Parser _Borrow oldParser, HASH_TABLE *_Borrow newTable,
 // - `s2` is zero-terminated but
 // - `s1` is made up of exactly (not just up to) `s1len` non-zero characters.
 _Safe static XML_Bool FASTCALL
-keyeq(KEY s1, size_t s1len, KEY s2) {
+keyeq(KEY s1, size_t s1len, KEY _Nonnull s2) {
 #ifdef XML_UNICODE
 #  ifdef XML_UNICODE_WCHAR_T
   return (_Unsafe(wcsncmp(s1, s2, s1len)) == 0 && s2[s1len] == L'\0') ? XML_TRUE
@@ -8186,14 +8205,14 @@ keyeq(KEY s1, size_t s1len, KEY s2) {
   return ((s1len == 0) && (*s2 == 0)) ? XML_TRUE : XML_FALSE;
 #  endif
 #else
-  return _Unsafe(((XML_Bool)((_Unsafe(strncmp(s1, s2, s1len)) == 0 && s2[s1len] == '\0')
+  return (XML_Bool)((_Unsafe(strncmp(s1, s2, s1len)) == 0 && s2[s1len] == '\0')
                         ? XML_TRUE
-                        : XML_FALSE)));
+                        : XML_FALSE);
 #endif
 }
 
 _Safe static size_t
-keylen(KEY s) {
+keylen(KEY _Nonnull s) {
   return _Unsafe(xcslen(s));
 }
 
@@ -8206,7 +8225,7 @@ copy_salt_to_sipkey(XML_Parser _Borrow parser, struct sipkey *_Borrow __attribut
 }
 
 _Safe static unsigned long FASTCALL
-hash(XML_Parser _Borrow parser, KEY s, size_t keyLen) {
+hash(XML_Parser _Borrow parser, KEY _Nonnull s, size_t keyLen) {
   struct siphash state = {0, 0, 0, 0, {0}, nullptr, 0};
   struct sipkey key = {{0, 0}};
   (void)sip24_valid;
@@ -8236,7 +8255,7 @@ hash(XML_Parser _Borrow parser, KEY s, size_t keyLen) {
 //       hash table does not store key length information.
 //
 _Safe static NAMED *
-lookupWithLength(XML_Parser _Borrow parser, HASH_TABLE *_Borrow table, KEY name, size_t nameLen,
+lookupWithLength(XML_Parser _Borrow parser, HASH_TABLE *_Borrow table, KEY _Nonnull name, size_t nameLen,
                  size_t createSize) {
   size_t i;
   if (table->size == 0) {
@@ -8296,6 +8315,10 @@ lookupWithLength(XML_Parser _Borrow parser, HASH_TABLE *_Borrow table, KEY name,
       for (i = 0; i < table->size; i++)
         if (table->v[i]) {
           KEY const key = _Unsafe((table->v[i]->name));
+          if (key == nullptr) {
+            _Unsafe FREE(PARSER_OF(table), newV);
+            return nullptr;
+          }
           unsigned long newHash = hash(parser, key, keylen(key));
           size_t j = newHash & newMask;
           step = 0;
@@ -8347,7 +8370,7 @@ lookupWithLength(XML_Parser _Borrow parser, HASH_TABLE *_Borrow table, KEY name,
 // with the structure returned.
 //
 _Safe static NAMED *
-lookup(XML_Parser _Borrow parser, HASH_TABLE *_Borrow table, KEY name, size_t createSize) {
+lookup(XML_Parser _Borrow parser, HASH_TABLE *_Borrow table, KEY _Nonnull name, size_t createSize) {
   return lookupWithLength(parser, table, name, keylen(name), createSize);
 }
 
@@ -8444,7 +8467,7 @@ poolDestroy(STRING_POOL *_Borrow pool) {
 }
 
 _Safe static XML_Char *
-poolAppend(STRING_POOL *_Borrow pool, const ENCODING *enc, const char *ptr,
+poolAppend(STRING_POOL *_Borrow pool, const ENCODING *_Nonnull enc, const char *ptr,
            const char *end) {
   if (! pool->ptr && ! poolGrow(pool))
     return nullptr;
@@ -8461,18 +8484,18 @@ poolAppend(STRING_POOL *_Borrow pool, const ENCODING *enc, const char *ptr,
 }
 
 _Safe static const XML_Char *FASTCALL
-poolCopyString(STRING_POOL *_Borrow pool, const XML_Char *s) {
+poolCopyString(STRING_POOL *_Borrow pool, const XML_Char *_Nonnull s) {
   if (! poolAppendChars(pool, s, _Unsafe(xcslen(s)) + /*null terminator*/ 1))
     return nullptr;
-  s = pool->start;
+  const XML_Char *copy = pool->start;
   poolFinish(pool);
-  return s;
+  return copy;
 }
 
 // A version of `poolCopyString` that does not call `poolFinish`
 // and reverts any partial advancement upon failure.
 _Safe static const XML_Char *FASTCALL
-poolCopyStringNoFinish(STRING_POOL *_Borrow pool, const XML_Char *s) {
+poolCopyStringNoFinish(STRING_POOL *_Borrow pool, const XML_Char *_Nonnull s) {
   const XML_Char *const original = s;
   do {
     if (_Unsafe((! poolAppendChar(pool, *s)))) {
@@ -8487,7 +8510,7 @@ poolCopyStringNoFinish(STRING_POOL *_Borrow pool, const XML_Char *s) {
 }
 
 _Safe static const XML_Char *
-poolCopyStringN(STRING_POOL *_Borrow pool, const XML_Char *s, int n) {
+poolCopyStringN(STRING_POOL *_Borrow pool, const XML_Char *_Nonnull s, int n) {
   if (! pool->ptr && ! poolGrow(pool)) {
     /* The following line is unreachable given the current usage of
      * poolCopyStringN().  Currently it is called from exactly one
@@ -8504,20 +8527,20 @@ poolCopyStringN(STRING_POOL *_Borrow pool, const XML_Char *s, int n) {
   }
   if (n > 0 && ! poolAppendChars(pool, s, (size_t)n))
     return nullptr;
-  s = pool->start;
+  const XML_Char *copy = pool->start;
   poolFinish(pool);
-  return s;
+  return copy;
 }
 
 _Safe static const XML_Char *FASTCALL
-poolAppendString(STRING_POOL *_Borrow pool, const XML_Char *s) {
+poolAppendString(STRING_POOL *_Borrow pool, const XML_Char *_Nonnull s) {
   if (! poolAppendChars(pool, s, _Unsafe(xcslen(s))))
     return nullptr;
   return pool->start;
 }
 
 _Safe static XML_Char *
-poolStoreString(STRING_POOL *_Borrow pool, const ENCODING *enc, const char *ptr,
+poolStoreString(STRING_POOL *_Borrow pool, const ENCODING *_Nonnull enc, const char *ptr,
                 const char *end) {
   if (! poolAppend(pool, enc, ptr, end))
     return nullptr;
@@ -8890,7 +8913,7 @@ build_model(XML_Parser _Borrow parser) {
 }
 
 _Safe static ELEMENT_TYPE *
-getElementType(XML_Parser _Borrow parser, const ENCODING *enc, const char *ptr,
+getElementType(XML_Parser _Borrow parser, const ENCODING *_Nonnull enc, const char *ptr,
                const char *end) {
   DTD *dtdRaw = parser->m_dtd;
   if (dtdRaw == nullptr)
@@ -8918,7 +8941,7 @@ getElementType(XML_Parser _Borrow parser, const ENCODING *enc, const char *ptr,
 }
 
 _Safe static XML_Char *_Owned _ArrayElem _Nullable
-copyString(const XML_Char *s, XML_Parser _Borrow parser) {
+copyString(const XML_Char *_Nonnull s, XML_Parser _Borrow parser) {
   /* First determine how long the string is */
   const size_t charsRequired = _Unsafe(xcslen(s)) + /*null terminator*/ 1;
 
@@ -9091,7 +9114,7 @@ testingAccountingGetCountBytesIndirect(XML_Parser _Borrow _Nullable parser) {
 }
 
 _Safe static void
-entityTrackingReportStats(XML_Parser _Borrow rootParser, ENTITY *entity,
+entityTrackingReportStats(XML_Parser _Borrow rootParser, ENTITY *_Nonnull entity,
                           const char *action, int sourceLine) {
   _Unsafe assert(! rootParser->m_parentParser);
   if (rootParser->m_entity_stats.debugLevel == 0u)
@@ -9125,7 +9148,7 @@ entityTrackingReportStats(XML_Parser _Borrow rootParser, ENTITY *entity,
 }
 
 _Safe static void
-entityTrackingOnOpen(XML_Parser _Borrow originParser, ENTITY *entity, int sourceLine) {
+entityTrackingOnOpen(XML_Parser _Borrow originParser, ENTITY *_Nonnull entity, int sourceLine) {
   XML_Parser _Borrow rootParser = getRootParserOf(originParser, nullptr);
   _Unsafe assert(! rootParser->m_parentParser);
 
@@ -9140,7 +9163,7 @@ entityTrackingOnOpen(XML_Parser _Borrow originParser, ENTITY *entity, int source
 }
 
 _Safe static void
-entityTrackingOnClose(XML_Parser _Borrow originParser, ENTITY *entity, int sourceLine) {
+entityTrackingOnClose(XML_Parser _Borrow originParser, ENTITY *_Nonnull entity, int sourceLine) {
   XML_Parser _Borrow rootParser = getRootParserOf(originParser, nullptr);
   _Unsafe assert(! rootParser->m_parentParser);
 

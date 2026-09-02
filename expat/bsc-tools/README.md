@@ -8,4 +8,4 @@
 4. `passC.py <file> <clang.log>` — compiler-driven: wraps the smallest statement or expression the compiler rejected, inserts `void *` casts, hoists field reads that conflict with a borrowed `parser`; iterate with a fresh `-ferror-limit=0` log until clean
 5. `post.py` — statement-level `_Unsafe call(...);` for readability
 
-Paths are absolute for this machine; adjust `p = ...` at the top of each script.
+Input: `git show ba929152:expat/lib/xmlparse.c` (upstream d9087a1c plus the BSC keyword rename and prolog-state borrows). Paths are absolute for this machine; adjust `p = ...` at the top of each script.
