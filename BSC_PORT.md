@@ -162,4 +162,4 @@ mentions them.
 
 | # | Where (file:line, function) | BSC signal | Hypothesis | Status |
 |---|---|---|---|---|
-| — | | | | |
+| 1 | `xmltok.c` `toAscii`, `char buf[1]` | init analysis: "use of uninitialized value: buf" at `p == buf` and `buf[0]` | `buf[0]` is only read after `utf8Convert` advanced `p` past it, so the read is always of a written byte; the checker cannot see the write through `&p`. Zero-initialised the array (behaviour unchanged). | false positive |

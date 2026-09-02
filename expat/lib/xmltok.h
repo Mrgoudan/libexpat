@@ -163,8 +163,8 @@ typedef struct {
 struct encoding;
 typedef struct encoding ENCODING;
 
-typedef int(PTRCALL *SCANNER)(const ENCODING *, const char *, const char *,
-                              const char **);
+typedef _Safe int(PTRCALL *SCANNER)(const ENCODING *, const char *,
+                                    const char *, const char **);
 
 enum XML_Convert_Result {
   XML_CONVERT_COMPLETED = 0,
@@ -173,31 +173,29 @@ enum XML_Convert_Result {
                                       as well */
 };
 
+/* ENCODING pointers stay raw: static vtables or parser memory, downcast, never borrowed. */
 struct encoding {
   SCANNER scanners[XML_N_STATES];
   SCANNER literalScanners[XML_N_LITERAL_TYPES];
-  int(PTRCALL *nameMatchesAscii)(const ENCODING *, const char *, const char *,
-                                 const char *);
-  int(PTRFASTCALL *nameLength)(const ENCODING *, const char *);
-  const char *(PTRFASTCALL *skipS)(const ENCODING *, const char *);
-  int(PTRCALL *getAtts)(const ENCODING *enc, const char *ptr, int attsMax,
-                        ATTRIBUTE *atts);
-  int(PTRFASTCALL *charRefNumber)(const ENCODING *enc, const char *ptr);
-  int(PTRCALL *predefinedEntityName)(const ENCODING *, const char *,
-                                     const char *);
-  void(PTRCALL *updatePosition)(const ENCODING *, const char *ptr,
-                                const char *end, POSITION *);
-  int(PTRCALL *isPublicId)(const ENCODING *enc, const char *ptr,
-                           const char *end, const char **badPtr);
-  enum XML_Convert_Result(PTRCALL *utf8Convert)(const ENCODING *enc,
-                                                const char **fromP,
-                                                const char *fromLim, char **toP,
-                                                const char *toLim);
-  enum XML_Convert_Result(PTRCALL *utf16Convert)(const ENCODING *enc,
-                                                 const char **fromP,
-                                                 const char *fromLim,
-                                                 unsigned short **toP,
-                                                 const unsigned short *toLim);
+  _Safe int(PTRCALL *nameMatchesAscii)(const ENCODING *, const char *,
+                                       const char *, const char *);
+  _Safe int(PTRFASTCALL *nameLength)(const ENCODING *, const char *);
+  _Safe const char *(PTRFASTCALL *skipS)(const ENCODING *, const char *);
+  _Safe int(PTRCALL *getAtts)(const ENCODING *enc, const char *ptr,
+                              int attsMax, ATTRIBUTE *atts);
+  _Safe int(PTRFASTCALL *charRefNumber)(const ENCODING *enc, const char *ptr);
+  _Safe int(PTRCALL *predefinedEntityName)(const ENCODING *, const char *,
+                                           const char *);
+  _Safe void(PTRCALL *updatePosition)(const ENCODING *, const char *ptr,
+                                      const char *end, POSITION *);
+  _Safe int(PTRCALL *isPublicId)(const ENCODING *enc, const char *ptr,
+                                 const char *end, const char **badPtr);
+  _Safe enum XML_Convert_Result(PTRCALL *utf8Convert)(
+      const ENCODING *enc, const char **fromP, const char *fromLim, char **toP,
+      const char *toLim);
+  _Safe enum XML_Convert_Result(PTRCALL *utf16Convert)(
+      const ENCODING *enc, const char **fromP, const char *fromLim,
+      unsigned short **toP, const unsigned short *toLim);
   int minBytesPerChar;
   char isUtf8;
   char isUtf16;
@@ -225,7 +223,7 @@ struct encoding {
 */
 
 #  define XmlTok(enc, state, ptr, end, nextTokPtr)                             \
-    (((enc)->scanners[state])(enc, ptr, end, nextTokPtr))
+    _Unsafe(((enc)->scanners[state])(enc, ptr, end, nextTokPtr))
 
 #  define XmlPrologTok(enc, ptr, end, nextTokPtr)                              \
     XmlTok(enc, XML_PROLOG_STATE, ptr, end, nextTokPtr)
@@ -247,7 +245,7 @@ struct encoding {
    of a literal that has already been returned by XmlTok.
 */
 #  define XmlLiteralTok(enc, literalType, ptr, end, nextTokPtr)                \
-    (((enc)->literalScanners[literalType])(enc, ptr, end, nextTokPtr))
+    _Unsafe(((enc)->literalScanners[literalType])(enc, ptr, end, nextTokPtr))
 
 #  define XmlAttributeValueTok(enc, ptr, end, nextTokPtr)                      \
     XmlLiteralTok(enc, XML_ATTRIBUTE_VALUE_LITERAL, ptr, end, nextTokPtr)
@@ -256,68 +254,72 @@ struct encoding {
     XmlLiteralTok(enc, XML_ENTITY_VALUE_LITERAL, ptr, end, nextTokPtr)
 
 #  define XmlNameMatchesAscii(enc, ptr1, end1, ptr2)                           \
-    (((enc)->nameMatchesAscii)(enc, ptr1, end1, ptr2))
+    _Unsafe(((enc)->nameMatchesAscii)(enc, ptr1, end1, ptr2))
 
-#  define XmlNameLength(enc, ptr) (((enc)->nameLength)(enc, ptr))
+#  define XmlNameLength(enc, ptr) _Unsafe(((enc)->nameLength)(enc, ptr))
 
-#  define XmlSkipS(enc, ptr) (((enc)->skipS)(enc, ptr))
+#  define XmlSkipS(enc, ptr) _Unsafe(((enc)->skipS)(enc, ptr))
 
 #  define XmlGetAttributes(enc, ptr, attsMax, atts)                            \
-    (((enc)->getAtts)(enc, ptr, attsMax, atts))
+    _Unsafe(((enc)->getAtts)(enc, ptr, attsMax, atts))
 
-#  define XmlCharRefNumber(enc, ptr) (((enc)->charRefNumber)(enc, ptr))
+#  define XmlCharRefNumber(enc, ptr) _Unsafe(((enc)->charRefNumber)(enc, ptr))
 
 #  define XmlPredefinedEntityName(enc, ptr, end)                               \
-    (((enc)->predefinedEntityName)(enc, ptr, end))
+    _Unsafe(((enc)->predefinedEntityName)(enc, ptr, end))
 
 #  define XmlUpdatePosition(enc, ptr, end, pos)                                \
-    (((enc)->updatePosition)(enc, ptr, end, pos))
+    _Unsafe(((enc)->updatePosition)(enc, ptr, end, pos))
 
 #  define XmlIsPublicId(enc, ptr, end, badPtr)                                 \
-    (((enc)->isPublicId)(enc, ptr, end, badPtr))
+    _Unsafe(((enc)->isPublicId)(enc, ptr, end, badPtr))
 
 #  define XmlUtf8Convert(enc, fromP, fromLim, toP, toLim)                      \
-    (((enc)->utf8Convert)(enc, fromP, fromLim, toP, toLim))
+    _Unsafe(((enc)->utf8Convert)(enc, fromP, fromLim, toP, toLim))
 
 #  define XmlUtf16Convert(enc, fromP, fromLim, toP, toLim)                     \
-    (((enc)->utf16Convert)(enc, fromP, fromLim, toP, toLim))
+    _Unsafe(((enc)->utf16Convert)(enc, fromP, fromLim, toP, toLim))
 
 typedef struct {
   ENCODING initEnc;
   const ENCODING **encPtr;
 } INIT_ENCODING;
 
-int XmlParseXmlDecl(int isGeneralTextEntity, const ENCODING *enc,
-                    const char *ptr, const char *end, const char **badPtr,
-                    const char **versionPtr, const char **versionEndPtr,
-                    const char **encodingNamePtr,
-                    const ENCODING **namedEncodingPtr, int *standalonePtr);
+_Safe int XmlParseXmlDecl(int isGeneralTextEntity, const ENCODING *enc,
+                          const char *ptr, const char *end, const char **badPtr,
+                          const char **versionPtr, const char **versionEndPtr,
+                          const char **encodingNamePtr,
+                          const ENCODING **namedEncodingPtr,
+                          int *standalonePtr);
 
-int XmlInitEncoding(INIT_ENCODING *p, const ENCODING **encPtr,
-                    const char *name);
-const ENCODING *XmlGetUtf8InternalEncoding(void);
-const ENCODING *XmlGetUtf16InternalEncoding(void);
-int FASTCALL XmlUtf8Encode(int charNumber, char *buf);
-int FASTCALL XmlUtf16Encode(int charNumber, unsigned short *buf);
-int XmlSizeOfUnknownEncoding(void);
+_Safe int XmlInitEncoding(INIT_ENCODING *p, const ENCODING **encPtr,
+                          const char *name);
+_Safe const ENCODING *XmlGetUtf8InternalEncoding(void);
+_Safe const ENCODING *XmlGetUtf16InternalEncoding(void);
+_Safe int FASTCALL XmlUtf8Encode(int charNumber, char *buf);
+_Safe int FASTCALL XmlUtf16Encode(int charNumber, unsigned short *buf);
+_Safe int XmlSizeOfUnknownEncoding(void);
 
+/* Application callback, hence not _Safe; called inside _Unsafe. */
 typedef int(XMLCALL *CONVERTER)(void *userData, const char *p);
 
-ENCODING *XmlInitUnknownEncoding(void *mem, const int *table, CONVERTER convert,
-                                 void *userData);
+_Safe ENCODING *XmlInitUnknownEncoding(void *mem, const int *table,
+                                       CONVERTER convert, void *userData);
 
-int XmlParseXmlDeclNS(int isGeneralTextEntity, const ENCODING *enc,
-                      const char *ptr, const char *end, const char **badPtr,
-                      const char **versionPtr, const char **versionEndPtr,
-                      const char **encodingNamePtr,
-                      const ENCODING **namedEncodingPtr, int *standalonePtr);
+_Safe int XmlParseXmlDeclNS(int isGeneralTextEntity, const ENCODING *enc,
+                            const char *ptr, const char *end,
+                            const char **badPtr, const char **versionPtr,
+                            const char **versionEndPtr,
+                            const char **encodingNamePtr,
+                            const ENCODING **namedEncodingPtr,
+                            int *standalonePtr);
 
-int XmlInitEncodingNS(INIT_ENCODING *p, const ENCODING **encPtr,
-                      const char *name);
-const ENCODING *XmlGetUtf8InternalEncodingNS(void);
-const ENCODING *XmlGetUtf16InternalEncodingNS(void);
-ENCODING *XmlInitUnknownEncodingNS(void *mem, const int *table,
-                                   CONVERTER convert, void *userData);
+_Safe int XmlInitEncodingNS(INIT_ENCODING *p, const ENCODING **encPtr,
+                            const char *name);
+_Safe const ENCODING *XmlGetUtf8InternalEncodingNS(void);
+_Safe const ENCODING *XmlGetUtf16InternalEncodingNS(void);
+_Safe ENCODING *XmlInitUnknownEncodingNS(void *mem, const int *table,
+                                         CONVERTER convert, void *userData);
 #  ifdef __cplusplus
 }
 #  endif
