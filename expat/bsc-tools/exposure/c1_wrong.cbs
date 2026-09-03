@@ -1,0 +1,10 @@
+#include "bishengc_safety.hbs"
+// Model of C1: the parse-window base pointer may be NULL, and the context0
+// epilogue does pointer arithmetic on it unconditionally.
+struct P { char *_Owned _Nullable buf; };
+_Safe void epilogue_wrong(struct P *_Borrow p, size_t nLeftOver) {
+  char *_Borrow _Nullable base = (p->buf == nullptr) ? nullptr : &_Mut *p->buf;
+  char *_Borrow end = base + nLeftOver;      // arithmetic on a possibly-null pointer
+  (void)end;
+}
+int main(void) { return 0; }

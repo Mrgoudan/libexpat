@@ -1,0 +1,10 @@
+#include "bishengc_safety.hbs"
+struct P { char *_Owned _Nullable buf; };
+_Safe char epilogue_wrong2(struct P *_Borrow p) {
+  return *p->buf;                            // deref of a possibly-null owned pointer
+}
+_Safe char epilogue_right(struct P *_Borrow p) {
+  if (p->buf == nullptr) return 0;
+  return *p->buf;                            // guarded: accepted
+}
+int main(void) { return 0; }
